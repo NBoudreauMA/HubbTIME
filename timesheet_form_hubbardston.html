@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Town of Hubbardston Timesheet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f7f8fa;
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #summary-section {
+      display: none;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    #signature-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .add-row-button {
+      margin-top: 8px;
+      background-color: #28a745;
+    }
+    .add-row-button:hover {
+      background-color: #218838;
+    }
+    .delete-row-button {
+      background-color: #dc3545;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delete-row-button:hover {
+      background-color: #c82333;
+    }
+    .total-label {
+      text-align: right;
+      font-weight: bold;
+    }
+    #signature-section {
+      margin-top: 15px;
+    }
+    .note {
+      font-size: 0.85em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Hubbardston-specific heading -->
+    <h1>Town of Hubbardston Timesheet</h1>
+    <form id="timesheet-form" onsubmit="return false;">
+      <!-- Employee Details -->
+      <div class="form-group">
+        <label for="employeeName">Employee Name</label>
+        <input type="text" id="employeeName" required />
+      </div>
+      <div class="form-group">
+        <label for="employeeId">Employee ID</label>
+        <input type="text" id="employeeId" required />
+      </div>
+      <div class="form-group">
+        <label for="department">Department</label>
+        <input type="text" id="department" required />
+      </div>
+      <div class="form-group">
+        <label for="weekStart">Week Starting</label>
+        <input type="date" id="weekStart" required />
+      </div>
+
+      <!-- Timesheet Entries -->
+      <h2>Daily Entries</h2>
+      <table id="entries-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Hours Worked</th>
+            <th>Description / Task</th>
+            <th>GL Code</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be added dynamically -->
+        </tbody>
+      </table>
+      <button type="button" class="add-row-button" onclick="addRow()">Add Day</button>
+
+      <div style="margin-top: 15px;">
+        <button type="button" onclick="generateSummary()">Review Timesheet</button>
+      </div>
+
+      <!-- Summary Section -->
+      <div id="summary-section">
+        <h2>Summary</h2>
+        <div id="employee-summary"></div>
+        <table id="summary-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Hours</th>
+              <th>Description</th>
+              <th>GL Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Summary rows inserted here -->
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="total-label">Total Hours</td>
+              <td id="total-hours" colspan="3">0</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div id="signature-section">
+          <label for="signature-input">Digital Signature (type your name)</label>
+          <input type="text" id="signature-input" placeholder="Type your name to sign" required />
+          <p class="note">By typing your name, you certify that the information provided is accurate.</p>
+        </div>
+        <div style="margin-top: 15px;">
+          <button type="button" onclick="submitTimesheet()">Submit Timesheet</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Function to add a new row to the entries table
+    function addRow() {
+      const tbody = document.querySelector('#entries-table tbody');
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td><input type="date" class="entry-date" required></td>
+        <td><input type="time" class="entry-start" required></td>
+        <td><input type="time" class="entry-end" required></td>
+        <td><input type="number" class="entry-hours" min="0" step="0.1" placeholder="0" required></td>
+        <td><input type="text" class="entry-desc" required></td>
+        <td><input type="text" class="entry-gl" required></td>
+        <td><button type="button" class="delete-row-button" onclick="deleteRow(this)">Delete</button></td>
+      `;
+      tbody.appendChild(newRow);
+    }
+
+    // Function to delete a row from entries table
+    function deleteRow(button) {
+      const row = button.parentNode.parentNode;
+      row.parentNode.removeChild(row);
+    }
+
+    // Calculate total hours from entries
+    function calculateTotalHours() {
+      const hoursInputs = document.querySelectorAll('.entry-hours');
+      let total = 0;
+      hoursInputs.forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) total += val;
+      });
+      return total;
+    }
+
+    // Generate summary and show summary section
+    function generateSummary() {
+      const name = document.getElementById('employeeName').value;
+      const id = document.getElementById('employeeId').value;
+      const dept = document.getElementById('department').value;
+      const week = document.getElementById('weekStart').value;
+
+      if (!name || !id || !dept || !week) {
+        alert('Please fill out employee details.');
+        return;
+      }
+
+      // Ensure there is at least one entry
+      const rows = document.querySelectorAll('#entries-table tbody tr');
+      if (rows.length === 0) {
+        alert('Please add at least one daily entry.');
+        return;
+      }
+
+      // Clear previous summary rows
+      const summaryBody = document.querySelector('#summary-table tbody');
+      summaryBody.innerHTML = '';
+
+      rows.forEach(row => {
+        const date = row.querySelector('.entry-date').value;
+        const start = row.querySelector('.entry-start').value;
+        const end = row.querySelector('.entry-end').value;
+        const hours = row.querySelector('.entry-hours').value;
+        const desc = row.querySelector('.entry-desc').value;
+        const gl = row.querySelector('.entry-gl').value;
+
+        const summaryRow = document.createElement('tr');
+        summaryRow.innerHTML = `
+          <td>${date}</td>
+          <td>${start}</td>
+          <td>${end}</td>
+          <td>${hours}</td>
+          <td>${desc}</td>
+          <td>${gl}</td>
+        `;
+        summaryBody.appendChild(summaryRow);
+      });
+
+      // Display employee summary
+      const employeeSummary = document.getElementById('employee-summary');
+      employeeSummary.innerHTML = `
+        <p><strong>Employee Name:</strong> ${name}</p>
+        <p><strong>Employee ID:</strong> ${id}</p>
+        <p><strong>Department:</strong> ${dept}</p>
+        <p><strong>Week Starting:</strong> ${week}</p>
+      `;
+
+      // Show total hours
+      const totalHours = calculateTotalHours();
+      document.getElementById('total-hours').textContent = totalHours.toFixed(2);
+
+      // Show summary section
+      document.getElementById('summary-section').style.display = 'block';
+
+      // Scroll to summary
+      document.getElementById('summary-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Submit timesheet function
+    function submitTimesheet() {
+      const signature = document.getElementById('signature-input').value.trim();
+      if (!signature) {
+        alert('Please provide your digital signature by typing your name.');
+        return;
+      }
+      // For demonstration, we just show an alert. In real use, this would send data to a server or save as submission.
+      alert('Thank you, ' + signature + '! Your timesheet has been submitted.');
+      // Reset form for next entry
+      document.getElementById('timesheet-form').reset();
+      document.querySelector('#entries-table tbody').innerHTML = '';
+      document.getElementById('summary-section').style.display = 'none';
+      // Add a new row after reset for convenience
+      addRow();
+    }
+
+    // Add initial row on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      addRow();
+    });
+  </script>
+</body>
+</html>
