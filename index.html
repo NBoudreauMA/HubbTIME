@@ -19,6 +19,7 @@
     .grid{display:grid;gap:12px}
     .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
     .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
     label{font-weight:600;font-size:12px;margin-bottom:6px;display:block}
     input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
     input[type="date"],input[type="time"]{padding:8px 10px}
@@ -39,7 +40,7 @@
     .right{text-align:right}
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
     .review{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
-    .review .panel{width:min(920px,95vw);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid var(--line)}
+    .review .panel{width:min(940px,95vw);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid var(--line)}
     .review .panel header{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
     .review .panel .body{padding:16px 18px}
     .hr{height:1px;background:var(--line);margin:14px 0}
@@ -57,7 +58,7 @@
       <img alt="Town Seal" src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Seal_of_Massachusetts.svg" width="40" height="40" />
       <div>
         <h1>Town of Hubbardston — Employee Timesheet</h1>
-        <div class="sub">Review your entries below before signing and submitting.</div>
+        <div class="sub">Review entries before signing. Select pay type to calculate your check.</div>
       </div>
     </header>
 
@@ -77,11 +78,30 @@
             <input id="department" placeholder="e.g., DPW, Clerk, Police" />
           </div>
         </div>
-        <div class="grid cols-2" style="margin-top:12px">
+
+        <div class="grid cols-4" style="margin-top:12px">
           <div>
             <label for="weekStart">Week Start (Mon)</label>
             <input id="weekStart" type="date" />
           </div>
+          <div>
+            <label for="payType">Pay Type</label>
+            <select id="payType">
+              <option value="hourly">Hourly</option>
+              <option value="salary">Salary (Annual)</option>
+            </select>
+          </div>
+          <div id="hourlyWrap">
+            <label for="hourlyRate">Hourly Rate ($/hr)</label>
+            <input id="hourlyRate" type="number" min="0" step="0.01" placeholder="e.g., 24.50" />
+          </div>
+          <div id="salaryWrap" class="hide">
+            <label for="annualSalary">Annual Salary ($/yr)</label>
+            <input id="annualSalary" type="number" min="0" step="0.01" placeholder="e.g., 62000" />
+          </div>
+        </div>
+
+        <div class="grid cols-2" style="margin-top:12px">
           <div>
             <label for="notes">Notes (optional)</label>
             <input id="notes" placeholder="Optional note to supervisor" />
@@ -99,7 +119,7 @@
         </div>
 
         <div class="alert small" style="margin-bottom:10px">
-          Tip: Start/End will auto-calc hours. GL Code is required (use your official code like <span class="nowrap">1000-192-5200</span>). You’ll review everything before signing.
+          Start/End will auto-calc hours. GL Code is required (e.g., <span class="nowrap">1000-192-5200</span>). Overtime is > 40 hrs/week at 1.5x for hourly.
         </div>
 
         <div style="overflow:auto">
@@ -138,7 +158,7 @@
     </div>
 
     <p class="small muted" style="margin:10px 2px">
-      Need help? Contact the Town Administrator’s Office. This tool is provided for convenience; official policies and contracts govern all compensable time.
+      Need help? Contact the Town Administrator’s Office. This tool is provided for convenience; official policies and contracts govern compensable time.
     </p>
   </div>
 
@@ -158,8 +178,9 @@
           <div><div class="muted small">Employee ID</div><div id="r_id"></div></div>
           <div><div class="muted small">Department</div><div id="r_dept"></div></div>
         </div>
-        <div class="grid cols-2" style="margin-top:10px">
+        <div class="grid cols-3" style="margin-top:10px">
           <div><div class="muted small">Week Start</div><div id="r_week"></div></div>
+          <div><div class="muted small">Pay Type</div><div id="r_paytype" class="pill"></div></div>
           <div><div class="muted small">Total Hours</div><div id="r_total" class="pill"></div></div>
         </div>
 
@@ -174,6 +195,38 @@
             </thead>
             <tbody id="r_rows"></tbody>
           </table>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid cols-3">
+          <div>
+            <div class="muted small">Regular Hours (≤ 40)</div>
+            <div id="r_reg_hours" class="pill"></div>
+          </div>
+          <div>
+            <div class="muted small">OT Hours (> 40 @ 1.5x)</div>
+            <div id="r_ot_hours" class="pill"></div>
+          </div>
+          <div>
+            <div class="muted small">Gross Pay (calc)</div>
+            <div id="r_gross" class="pill"></div>
+          </div>
+        </div>
+
+        <div class="grid cols-3" id="salaryBlock" style="margin-top:10px">
+          <div>
+            <div class="muted small">Annual Salary</div>
+            <div id="r_salary" class="pill"></div>
+          </div>
+          <div>
+            <div class="muted small">Weekly Salary (÷52)</div>
+            <div id="r_weekly" class="pill"></div>
+          </div>
+          <div>
+            <div class="muted small">Hourly Equivalent (÷2080)</div>
+            <div id="r_hourly_eq" class="pill"></div>
+          </div>
         </div>
 
         <div class="hr"></div>
@@ -203,16 +256,15 @@
 /* ===========================
    CONFIGURE THESE TWO VALUES
    =========================== */
-const FLOW_URL = "FLOW_URL_HERE";               // <-- paste your Power Automate HTTP trigger URL
-const X_HUBB_TOKEN = "X_HUBB_TOKEN_VALUE";      // <-- set any long random string; check it in your Flow
+const FLOW_URL = "FLOW_URL_HERE";               // <-- Power Automate HTTP trigger URL
+const X_HUBB_TOKEN = "X_HUBB_TOKEN_VALUE";      // <-- Secret checked in Flow
 
-/* Optional: seed GL codes for datalist (edit to your official list or leave empty) */
+/* Optional GL codes list (for datalist dropdown) */
 const GL_CODES = [
-  "1000-192-5200", "1000-210-5110", "1000-420-5400",
-  "1000-292-5300", "2000-123-5200", "6100-300-5700"
+  "1000-192-5200","1000-210-5110","1000-420-5400","1000-292-5300","2000-123-5200","6100-300-5700"
 ];
 
-/* UI Elements */
+/* Elements */
 const rowsEl = document.getElementById('rows');
 const totalHoursEl = document.getElementById('totalHours');
 const addRowBtn = document.getElementById('addRowBtn');
@@ -220,6 +272,12 @@ const clearRowsBtn = document.getElementById('clearRowsBtn');
 const reviewBtn = document.getElementById('reviewBtn');
 const printBtn = document.getElementById('printBtn');
 const statusArea = document.getElementById('statusArea');
+
+const payTypeEl = document.getElementById('payType');
+const hourlyWrap = document.getElementById('hourlyWrap');
+const salaryWrap = document.getElementById('salaryWrap');
+const hourlyRateEl = document.getElementById('hourlyRate');
+const annualSalaryEl = document.getElementById('annualSalary');
 
 const modal = document.getElementById('reviewModal');
 const closeReview = document.getElementById('closeReview');
@@ -234,14 +292,23 @@ const r_week = document.getElementById('r_week');
 const r_total = document.getElementById('r_total');
 const r_rows = document.getElementById('r_rows');
 
-function el(tag, attrs={}, children=[]) {
+const r_paytype = document.getElementById('r_paytype');
+const r_reg_hours = document.getElementById('r_reg_hours');
+const r_ot_hours = document.getElementById('r_ot_hours');
+const r_gross = document.getElementById('r_gross');
+const r_salaryBlock = document.getElementById('salaryBlock');
+const r_salary = document.getElementById('r_salary');
+const r_weekly = document.getElementById('r_weekly');
+const r_hourly_eq = document.getElementById('r_hourly_eq');
+
+function el(tag, attrs={}, children=[]){
   const e = document.createElement(tag);
   Object.entries(attrs).forEach(([k,v])=>{
-    if(k==='class') e.className = v;
-    else if(k==='text') e.textContent = v;
-    else e.setAttribute(k, v);
+    if(k==='class') e.className=v;
+    else if(k==='text') e.textContent=v;
+    else e.setAttribute(k,v);
   });
-  children.forEach(c => e.appendChild(c));
+  children.forEach(c=>e.appendChild(c));
   return e;
 }
 
@@ -251,13 +318,12 @@ function hoursBetween(start, end){
   const [eh, em] = end.split(':').map(Number);
   let s = sh + sm/60;
   let e = eh + em/60;
-  // if end is after midnight, assume same-day entry; adjust here if you allow overnight
   const diff = Math.max(0, e - s);
-  return Math.round(diff * 100) / 100;
+  return Math.round(diff*100)/100;
 }
 
 function recalcTotals(){
-  let total = 0;
+  let total=0;
   document.querySelectorAll('.row-hours').forEach(inp=>{
     const v = parseFloat(inp.value||'0');
     total += isNaN(v) ? 0 : v;
@@ -265,9 +331,9 @@ function recalcTotals(){
   totalHoursEl.textContent = total.toFixed(2);
 }
 
-function makeGLDatalistCell(inputId){
+function makeGLDatalistCell(){
   const wrap = el('div', {});
-  const input = el('input', { id: inputId, list:'gl-list', placeholder:'e.g., 1000-192-5200', class:'gl-input' });
+  const input = el('input', { list:'gl-list', placeholder:'e.g., 1000-192-5200', class:'gl-input' });
   wrap.appendChild(input);
   return wrap;
 }
@@ -282,16 +348,14 @@ function ensureGLDatalist(){
 function addRow(prefill){
   ensureGLDatalist();
   const tr = el('tr', {});
-  const idSuffix = Math.random().toString(36).slice(2,8);
-
   const date = el('input', { type:'date', class:'row-date' });
   const start = el('input', { type:'time', class:'row-start' });
   const end = el('input', { type:'time', class:'row-end' });
   const hours = el('input', { type:'number', step:'0.01', min:'0', class:'row-hours', readonly:'readonly' });
   const desc = el('input', { class:'row-desc', placeholder:'Task or summary' });
-  const glCell = makeGLDatalistCell('gl-'+idSuffix);
+  const glCell = makeGLDatalistCell();
   const gl = glCell.querySelector('input');
-  const rm = el('button', { class:'btn-danger' , type:'button' , text:'Remove' });
+  const rm = el('button', { class:'btn-danger', type:'button', text:'Remove' });
 
   function updateHours(){
     hours.value = hoursBetween(start.value, end.value).toFixed(2);
@@ -311,10 +375,7 @@ function addRow(prefill){
     hours.value = '0.00';
   }
 
-  rm.addEventListener('click', ()=>{
-    tr.remove();
-    recalcTotals();
-  });
+  rm.addEventListener('click', ()=>{ tr.remove(); recalcTotals(); });
 
   tr.appendChild(el('td', {}, [date]));
   tr.appendChild(el('td', {}, [start]));
@@ -327,13 +388,41 @@ function addRow(prefill){
   recalcTotals();
 }
 
-function clearRows(){
-  rowsEl.innerHTML = '';
-  recalcTotals();
+function clearRows(){ rowsEl.innerHTML=''; recalcTotals(); }
+
+function totalHours(){ return parseFloat(totalHoursEl.textContent) || 0; }
+
+function computePay(parts){
+  // returns {regularHours, overtimeHours, grossPay, weeklySalary, hourlyEq, proratedWeek}
+  const total = parts.totalHours;
+  const payType = parts.payType;
+  const out = { regularHours:0, overtimeHours:0, grossPay:0, weeklySalary:0, hourlyEq:0, proratedWeek:0 };
+
+  if(payType==='hourly'){
+    const rate = Math.max(0, parseFloat(parts.hourlyRate||'0')||0);
+    const reg = Math.min(total, 40);
+    const ot = Math.max(0, total - 40);
+    out.regularHours = +reg.toFixed(2);
+    out.overtimeHours = +ot.toFixed(2);
+    out.grossPay = +(reg*rate + ot*rate*1.5).toFixed(2);
+  } else {
+    const salary = Math.max(0, parseFloat(parts.annualSalary||'0')||0);
+    const weekly = salary/52;
+    const hourly = salary/2080; // 40*52
+    // optionally: prorate week by hours/40, but still show full weekly.
+    const prorated = (total/40)*weekly;
+    out.regularHours = Math.min(total, 40);
+    out.overtimeHours = Math.max(0, total-40); // for reference only; salary pay typically not OT-eligible unless contract says so
+    out.grossPay = +prorated.toFixed(2); // show prorated for transparency; policy governs actual pay
+    out.weeklySalary = +weekly.toFixed(2);
+    out.hourlyEq = +hourly.toFixed(2);
+    out.proratedWeek = +prorated.toFixed(2);
+  }
+  return out;
 }
 
 function payloadFromForm(){
-  const entries = [];
+  const entries=[];
   rowsEl.querySelectorAll('tr').forEach(tr=>{
     const date = tr.querySelector('.row-date')?.value?.trim();
     const startTime = tr.querySelector('.row-start')?.value?.trim();
@@ -341,12 +430,13 @@ function payloadFromForm(){
     const hours = parseFloat(tr.querySelector('.row-hours')?.value || '0') || 0;
     const description = tr.querySelector('.row-desc')?.value?.trim() || '';
     const glCode = tr.querySelector('.gl-input')?.value?.trim() || '';
-    if(date || hours || glCode){
-      entries.push({ date, startTime, endTime, hours, description, glCode });
-    }
+    if(date || hours || glCode){ entries.push({ date, startTime, endTime, hours, description, glCode }); }
   });
+  const total = entries.reduce((a,b)=>a+(parseFloat(b.hours)||0),0);
 
-  const totalHours = entries.reduce((a,b)=>a + (parseFloat(b.hours)||0), 0);
+  const payType = payTypeEl.value;
+  const hourlyRate = parseFloat(hourlyRateEl.value||'0')||0;
+  const annualSalary = parseFloat(annualSalaryEl.value||'0')||0;
 
   return {
     employeeName: document.getElementById('employeeName').value.trim(),
@@ -354,46 +444,74 @@ function payloadFromForm(){
     department: document.getElementById('department').value.trim(),
     weekStart: document.getElementById('weekStart').value,
     notes: document.getElementById('notes').value.trim(),
-    totalHours: Math.round(totalHours*100)/100,
+    payType,
+    hourlyRate,
+    annualSalary,
+    totalHours: +total.toFixed(2),
     entries
   };
 }
 
 function validateForReview(p){
-  const errs = [];
+  const errs=[];
   if(!p.employeeName) errs.push("Employee Name is required.");
   if(!p.weekStart) errs.push("Week Start is required.");
   if(!p.entries.length) errs.push("Add at least one day entry.");
   const badGL = p.entries.filter(e=>!e.glCode);
   if(badGL.length) errs.push("GL Code is required for each entry.");
+  if(p.payType==='hourly' && (!p.hourlyRate || p.hourlyRate<=0)) errs.push("Hourly rate is required for hourly employees.");
+  if(p.payType==='salary' && (!p.annualSalary || p.annualSalary<=0)) errs.push("Annual salary is required for salary employees.");
   return errs;
 }
 
-function renderReview(p){
+function renderReview(p, calc){
   r_emp.textContent = p.employeeName || '—';
   r_id.textContent = p.employeeId || '—';
   r_dept.textContent = p.department || '—';
   r_week.textContent = p.weekStart || '—';
   r_total.textContent = (p.totalHours ?? 0).toFixed(2);
+  r_paytype.textContent = p.payType==="hourly" ? "Hourly" : "Salary";
 
-  r_rows.innerHTML = '';
+  r_rows.innerHTML='';
   p.entries.forEach(e=>{
     const tr = el('tr', {});
-    tr.appendChild(el('td', { text: e.date || '—' }));
-    tr.appendChild(el('td', { text: e.startTime || '—' }));
-    tr.appendChild(el('td', { text: e.endTime || '—' }));
-    tr.appendChild(el('td', { text: (e.hours??0).toFixed(2) }));
-    tr.appendChild(el('td', { text: e.description || '' }));
-    tr.appendChild(el('td', { text: e.glCode || '' }));
+    tr.appendChild(el('td',{text:e.date||'—'}));
+    tr.appendChild(el('td',{text:e.startTime||'—'}));
+    tr.appendChild(el('td',{text:e.endTime||'—'}));
+    tr.appendChild(el('td',{text:(e.hours??0).toFixed(2)}));
+    tr.appendChild(el('td',{text:e.description||''}));
+    tr.appendChild(el('td',{text:e.glCode||''}));
     r_rows.appendChild(tr);
   });
+
+  r_reg_hours.textContent = (calc.regularHours ?? 0).toFixed(2);
+  r_ot_hours.textContent = (calc.overtimeHours ?? 0).toFixed(2);
+  r_gross.textContent = `$${(calc.grossPay ?? 0).toFixed(2)}`;
+
+  if(p.payType==='salary'){
+    r_salaryBlock.classList.remove('hide');
+    r_salary.textContent = `$${(p.annualSalary||0).toFixed(2)}`;
+    r_weekly.textContent = `$${(calc.weeklySalary||0).toFixed(2)}`;
+    r_hourly_eq.textContent = `$${(calc.hourlyEq||0).toFixed(2)}`;
+  } else {
+    r_salaryBlock.classList.add('hide');
+  }
 }
 
-function showStatus(target, html, cls){
-  target.innerHTML = `<div class="${cls}">${html}</div>`;
+function showStatus(target, html, cls){ target.innerHTML = `<div class="${cls}">${html}</div>`; }
+
+/* UI handlers */
+payTypeEl.addEventListener('change', ()=>{
+  if(payTypeEl.value==='salary'){ salaryWrap.classList.remove('hide'); hourlyWrap.classList.add('hide'); }
+  else { hourlyWrap.classList.remove('hide'); salaryWrap.classList.add('hide'); }
+});
+
+function recalcRowHoursOnChange(start, end, hours){
+  function update(){ hours.value = hoursBetween(start.value, end.value).toFixed(2); recalcTotals(); }
+  start.addEventListener('change', update);
+  end.addEventListener('change', update);
 }
 
-/* Events */
 addRowBtn.addEventListener('click', ()=>addRow());
 clearRowsBtn.addEventListener('click', clearRows);
 printBtn.addEventListener('click', ()=>window.print());
@@ -401,41 +519,49 @@ printBtn.addEventListener('click', ()=>window.print());
 reviewBtn.addEventListener('click', ()=>{
   const p = payloadFromForm();
   const errs = validateForReview(p);
-  if(errs.length){
-    showStatus(statusArea, errs.join('<br>'), 'error');
-    return;
-  }
+  if(errs.length){ showStatus(statusArea, errs.join('<br>'), 'error'); return; }
   showStatus(statusArea, '', 'hide');
-  renderReview(p);
+
+  const calc = computePay(p);
+  renderReview(p, calc);
   document.getElementById('signature').value = '';
   document.getElementById('acknowledge').checked = false;
   modal.style.display = 'flex';
   document.getElementById('closeReview').focus();
 });
 
-closeReview.addEventListener('click', ()=> modal.style.display = 'none');
-backBtn.addEventListener('click', ()=> modal.style.display = 'none');
+document.getElementById('closeReview').addEventListener('click', ()=> modal.style.display='none');
+backBtn.addEventListener('click', ()=> modal.style.display='none');
 
 async function submitToFlow(payload){
-  if(!FLOW_URL || FLOW_URL === "FLOW_URL_HERE"){
-    throw new Error("FLOW_URL not configured.");
-  }
+  if(!FLOW_URL || FLOW_URL==="FLOW_URL_HERE") throw new Error("FLOW_URL not configured.");
+
+  const calc = computePay(payload);
   const body = {
     employeeName: payload.employeeName,
     employeeId: payload.employeeId,
     department: payload.department,
     weekStart: payload.weekStart,
     notes: payload.notes,
+    payType: payload.payType,
+    hourlyRate: payload.hourlyRate,
+    annualSalary: payload.annualSalary,
     totalHours: payload.totalHours,
-    signature: (document.getElementById('signature').value || '').trim(),
+    // Calculated fields:
+    regularHours: calc.regularHours,
+    overtimeHours: calc.overtimeHours,
+    grossPay: calc.grossPay,
+    weeklySalary: calc.weeklySalary || null,
+    hourlyEquivalent: calc.hourlyEq || null,
+    // Signature:
+    signature: (document.getElementById('signature').value||'').trim(),
+    // Entries:
     entries: payload.entries
   };
+
   const res = await fetch(FLOW_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-hubb-token": X_HUBB_TOKEN
-    },
+    headers: { "Content-Type":"application/json", "x-hubb-token": X_HUBB_TOKEN },
     body: JSON.stringify(body)
   });
   if(!res.ok){
@@ -445,32 +571,28 @@ async function submitToFlow(payload){
   return res.json().catch(()=> ({}));
 }
 
-submitBtn.addEventListener('click', async ()=>{
-  const sig = (document.getElementById('signature').value || '').trim();
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const sig = (document.getElementById('signature').value||'').trim();
   const ack = document.getElementById('acknowledge').checked;
   const p = payloadFromForm();
 
   const errs = validateForReview(p);
   if(!sig) errs.push("Signature is required.");
   if(!ack) errs.push("Acknowledgement is required.");
-
-  if(errs.length){
-    showStatus(reviewStatus, errs.join('<br>'), 'error');
-    return;
-  }
+  if(errs.length){ showStatus(reviewStatus, errs.join('<br>'), 'error'); return; }
 
   showStatus(reviewStatus, "Submitting… Please wait.", "alert");
   try{
     await submitToFlow(p);
     showStatus(reviewStatus, "Submitted successfully. Thank you!", "success");
-    // optional: clear form after success
     setTimeout(()=>{
-      modal.style.display = 'none';
-      document.getElementById('employeeName').value = '';
-      document.getElementById('employeeId').value = '';
-      document.getElementById('department').value = '';
-      document.getElementById('weekStart').value = '';
-      document.getElementById('notes').value = '';
+      modal.style.display='none';
+      document.getElementById('employeeName').value='';
+      document.getElementById('employeeId').value='';
+      document.getElementById('department').value='';
+      document.getElementById('weekStart').value='';
+      document.getElementById('notes').value='';
+      hourlyRateEl.value=''; annualSalaryEl.value='';
       clearRows();
     }, 800);
   }catch(err){
@@ -478,7 +600,7 @@ submitBtn.addEventListener('click', async ()=>{
   }
 });
 
-/* Start with 5 rows for convenience */
+/* Seed with some empty rows */
 for(let i=0;i<5;i++) addRow();
 </script>
 </body>
