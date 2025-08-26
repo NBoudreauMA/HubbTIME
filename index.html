@@ -23,11 +23,10 @@
     label{font-weight:600;font-size:12px;margin-bottom:6px;display:block}
     input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
     input[type="date"],input[type="time"]{padding:8px 10px}
-    textarea{min-height:60px;resize:vertical}
     table{width:100%;border-collapse:separate;border-spacing:0 8px}
     th,td{text-align:left;font-size:13px}
     thead th{color:var(--muted);font-weight:700;padding:6px 8px}
-    tbody td{background:#fff;border:1px solid var(--line);padding:8px;border-left-width:1px}
+    tbody td{background:#fff;border:1px solid var(--line);padding:8px}
     tbody tr td:first-child{border-radius:10px 0 0 10px}
     tbody tr td:last-child{border-radius:0 10px 10px 0}
     tfoot td{padding:8px 0}
@@ -40,7 +39,7 @@
     .right{text-align:right}
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
     .review{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
-    .review .panel{width:min(940px,95vw);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid var(--line)}
+    .review .panel{width:min(960px,95vw);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid var(--line)}
     .review .panel header{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
     .review .panel .body{padding:16px 18px}
     .hr{height:1px;background:var(--line);margin:14px 0}
@@ -119,7 +118,8 @@
         </div>
 
         <div class="alert small" style="margin-bottom:10px">
-          Start/End will auto-calc hours. GL Code is required (e.g., <span class="nowrap">1000-192-5200</span>). Overtime is > 40 hrs/week at 1.5x for hourly.
+          Start/End will auto-calc hours. GL Code is required (e.g., <span class="nowrap">1000-192-5200</span>).
+          <br><strong>Overtime is computed from Regular hours only</strong> (> 40 @ 1.5x). Sick/Personal/Vacation are paid at base rate and do not create OT.
         </div>
 
         <div style="overflow:auto">
@@ -130,6 +130,7 @@
                 <th>Start</th>
                 <th>End</th>
                 <th>Hours</th>
+                <th style="min-width:160px">Type</th>
                 <th style="min-width:200px">Description / Task</th>
                 <th style="min-width:160px">GL Code</th>
                 <th class="right" style="min-width:80px">Remove</th>
@@ -138,7 +139,7 @@
             <tbody id="rows"></tbody>
             <tfoot>
               <tr>
-                <td colspan="7" class="right">
+                <td colspan="8" class="right">
                   <span class="muted">Total Hours:</span>
                   <span id="totalHours" class="pill">0.00</span>
                 </td>
@@ -158,7 +159,7 @@
     </div>
 
     <p class="small muted" style="margin:10px 2px">
-      Need help? Contact the Town Administrator’s Office. This tool is provided for convenience; official policies and contracts govern compensable time.
+      Need help? Contact the Town Administrator’s Office. Official policies and contracts govern compensable time.
     </p>
   </div>
 
@@ -190,7 +191,7 @@
           <table aria-label="Review Entries">
             <thead>
               <tr>
-                <th>Date</th><th>Start</th><th>End</th><th>Hours</th><th>Description</th><th>GL Code</th>
+                <th>Date</th><th>Start</th><th>End</th><th>Hours</th><th>Type</th><th>Description</th><th>GL Code</th>
               </tr>
             </thead>
             <tbody id="r_rows"></tbody>
@@ -200,33 +201,21 @@
         <div class="hr"></div>
 
         <div class="grid cols-3">
-          <div>
-            <div class="muted small">Regular Hours (≤ 40)</div>
-            <div id="r_reg_hours" class="pill"></div>
-          </div>
-          <div>
-            <div class="muted small">OT Hours (> 40 @ 1.5x)</div>
-            <div id="r_ot_hours" class="pill"></div>
-          </div>
-          <div>
-            <div class="muted small">Gross Pay (calc)</div>
-            <div id="r_gross" class="pill"></div>
-          </div>
+          <div><div class="muted small">Regular Worked Hours (≤ 40)</div><div id="r_reg_hours" class="pill"></div></div>
+          <div><div class="muted small">Overtime Hours (> 40 Regular @ 1.5x)</div><div id="r_ot_hours" class="pill"></div></div>
+          <div><div class="muted small">Gross Pay (calc)</div><div id="r_gross" class="pill"></div></div>
+        </div>
+
+        <div class="grid cols-3" style="margin-top:10px">
+          <div><div class="muted small">Sick Hours</div><div id="r_sick" class="pill"></div></div>
+          <div><div class="muted small">Personal Hours</div><div id="r_personal" class="pill"></div></div>
+          <div><div class="muted small">Vacation Hours</div><div id="r_vacation" class="pill"></div></div>
         </div>
 
         <div class="grid cols-3" id="salaryBlock" style="margin-top:10px">
-          <div>
-            <div class="muted small">Annual Salary</div>
-            <div id="r_salary" class="pill"></div>
-          </div>
-          <div>
-            <div class="muted small">Weekly Salary (÷52)</div>
-            <div id="r_weekly" class="pill"></div>
-          </div>
-          <div>
-            <div class="muted small">Hourly Equivalent (÷2080)</div>
-            <div id="r_hourly_eq" class="pill"></div>
-          </div>
+          <div><div class="muted small">Annual Salary</div><div id="r_salary" class="pill"></div></div>
+          <div><div class="muted small">Weekly Salary (÷52)</div><div id="r_weekly" class="pill"></div></div>
+          <div><div class="muted small">Hourly Equivalent (÷2080)</div><div id="r_hourly_eq" class="pill"></div></div>
         </div>
 
         <div class="hr"></div>
@@ -239,7 +228,7 @@
           </div>
           <div>
             <label for="acknowledge" class="small">Acknowledgement</label>
-            <div><input type="checkbox" id="acknowledge" /> I understand this submission is subject to Town policies, collective bargaining, and applicable state & federal law.</div>
+            <div><input type="checkbox" id="acknowledge" /> I understand this submission is subject to Town policies, collective bargaining, and applicable law.</div>
           </div>
         </div>
 
@@ -301,6 +290,10 @@ const r_salary = document.getElementById('r_salary');
 const r_weekly = document.getElementById('r_weekly');
 const r_hourly_eq = document.getElementById('r_hourly_eq');
 
+const r_sick = document.getElementById('r_sick');
+const r_personal = document.getElementById('r_personal');
+const r_vacation = document.getElementById('r_vacation');
+
 function el(tag, attrs={}, children=[]){
   const e = document.createElement(tag);
   Object.entries(attrs).forEach(([k,v])=>{
@@ -331,6 +324,14 @@ function recalcTotals(){
   totalHoursEl.textContent = total.toFixed(2);
 }
 
+function makeTypeSelect(){
+  const sel = el('select', { class:'row-type' });
+  ["Regular","Sick","Personal","Vacation"].forEach(t=>{
+    sel.appendChild(el('option', { value:t, text:t }));
+  });
+  return sel;
+}
+
 function makeGLDatalistCell(){
   const wrap = el('div', {});
   const input = el('input', { list:'gl-list', placeholder:'e.g., 1000-192-5200', class:'gl-input' });
@@ -352,6 +353,7 @@ function addRow(prefill){
   const start = el('input', { type:'time', class:'row-start' });
   const end = el('input', { type:'time', class:'row-end' });
   const hours = el('input', { type:'number', step:'0.01', min:'0', class:'row-hours', readonly:'readonly' });
+  const typ = makeTypeSelect();
   const desc = el('input', { class:'row-desc', placeholder:'Task or summary' });
   const glCell = makeGLDatalistCell();
   const gl = glCell.querySelector('input');
@@ -371,6 +373,7 @@ function addRow(prefill){
     hours.value = (prefill.hours ?? 0).toFixed(2);
     desc.value = prefill.description || '';
     gl.value = prefill.glCode || '';
+    if(prefill.timeType) typ.value = prefill.timeType;
   } else {
     hours.value = '0.00';
   }
@@ -381,6 +384,7 @@ function addRow(prefill){
   tr.appendChild(el('td', {}, [start]));
   tr.appendChild(el('td', {}, [end]));
   tr.appendChild(el('td', {}, [hours]));
+  tr.appendChild(el('td', {}, [typ]));
   tr.appendChild(el('td', {}, [desc]));
   tr.appendChild(el('td', {}, [glCell]));
   tr.appendChild(el('td', { class:'right' }, [rm]));
@@ -390,32 +394,49 @@ function addRow(prefill){
 
 function clearRows(){ rowsEl.innerHTML=''; recalcTotals(); }
 
-function totalHours(){ return parseFloat(totalHoursEl.textContent) || 0; }
+function summarizeHours(entries){
+  let total=0, reg=0, sick=0, pers=0, vac=0;
+  entries.forEach(e=>{
+    const h = parseFloat(e.hours)||0;
+    total += h;
+    switch((e.timeType||'Regular')){
+      case 'Sick': sick += h; break;
+      case 'Personal': pers += h; break;
+      case 'Vacation': vac += h; break;
+      default: reg += h; break;
+    }
+  });
+  // OT from Regular hours only
+  const ot = Math.max(0, reg - 40);
+  const regPaid = Math.min(reg, 40);
+  return {
+    total: +total.toFixed(2),
+    reg: +reg.toFixed(2),
+    sick: +sick.toFixed(2),
+    personal: +pers.toFixed(2),
+    vacation: +vac.toFixed(2),
+    overtime: +ot.toFixed(2),
+    regPaid: +regPaid.toFixed(2)
+  };
+}
 
-function computePay(parts){
-  // returns {regularHours, overtimeHours, grossPay, weeklySalary, hourlyEq, proratedWeek}
-  const total = parts.totalHours;
-  const payType = parts.payType;
-  const out = { regularHours:0, overtimeHours:0, grossPay:0, weeklySalary:0, hourlyEq:0, proratedWeek:0 };
-
-  if(payType==='hourly'){
+function computePay(parts, sums){
+  // returns {grossPay, weeklySalary, hourlyEq, proratedWeek}
+  const out = { grossPay:0, weeklySalary:0, hourlyEq:0, proratedWeek:0 };
+  if(parts.payType==='hourly'){
     const rate = Math.max(0, parseFloat(parts.hourlyRate||'0')||0);
-    const reg = Math.min(total, 40);
-    const ot = Math.max(0, total - 40);
-    out.regularHours = +reg.toFixed(2);
-    out.overtimeHours = +ot.toFixed(2);
-    out.grossPay = +(reg*rate + ot*rate*1.5).toFixed(2);
+    const gross = (sums.regPaid * rate) + (sums.overtime * rate * 1.5)
+                + ((sums.sick + sums.personal + sums.vacation) * rate);
+    out.grossPay = +gross.toFixed(2);
   } else {
     const salary = Math.max(0, parseFloat(parts.annualSalary||'0')||0);
     const weekly = salary/52;
-    const hourly = salary/2080; // 40*52
-    // optionally: prorate week by hours/40, but still show full weekly.
-    const prorated = (total/40)*weekly;
-    out.regularHours = Math.min(total, 40);
-    out.overtimeHours = Math.max(0, total-40); // for reference only; salary pay typically not OT-eligible unless contract says so
-    out.grossPay = +prorated.toFixed(2); // show prorated for transparency; policy governs actual pay
+    const hourly = salary/2080;
+    const paidHours = sums.total; // treat all categories as paid; change if your policy differs
+    const prorated = (paidHours/40)*weekly;
     out.weeklySalary = +weekly.toFixed(2);
     out.hourlyEq = +hourly.toFixed(2);
+    out.grossPay = +prorated.toFixed(2);
     out.proratedWeek = +prorated.toFixed(2);
   }
   return out;
@@ -428,15 +449,17 @@ function payloadFromForm(){
     const startTime = tr.querySelector('.row-start')?.value?.trim();
     const endTime = tr.querySelector('.row-end')?.value?.trim();
     const hours = parseFloat(tr.querySelector('.row-hours')?.value || '0') || 0;
+    const timeType = tr.querySelector('.row-type')?.value || 'Regular';
     const description = tr.querySelector('.row-desc')?.value?.trim() || '';
     const glCode = tr.querySelector('.gl-input')?.value?.trim() || '';
-    if(date || hours || glCode){ entries.push({ date, startTime, endTime, hours, description, glCode }); }
+    if(date || hours || glCode){ entries.push({ date, startTime, endTime, hours, timeType, description, glCode }); }
   });
-  const total = entries.reduce((a,b)=>a+(parseFloat(b.hours)||0),0);
 
   const payType = payTypeEl.value;
   const hourlyRate = parseFloat(hourlyRateEl.value||'0')||0;
   const annualSalary = parseFloat(annualSalaryEl.value||'0')||0;
+
+  const sums = summarizeHours(entries);
 
   return {
     employeeName: document.getElementById('employeeName').value.trim(),
@@ -447,7 +470,14 @@ function payloadFromForm(){
     payType,
     hourlyRate,
     annualSalary,
-    totalHours: +total.toFixed(2),
+    totalHours: sums.total,
+    hoursBreakdown: {
+      regular: sums.reg,
+      sick: sums.sick,
+      personal: sums.personal,
+      vacation: sums.vacation,
+      overtime: sums.overtime
+    },
     entries
   };
 }
@@ -464,7 +494,7 @@ function validateForReview(p){
   return errs;
 }
 
-function renderReview(p, calc){
+function renderReview(p, sums, calc){
   r_emp.textContent = p.employeeName || '—';
   r_id.textContent = p.employeeId || '—';
   r_dept.textContent = p.department || '—';
@@ -479,13 +509,17 @@ function renderReview(p, calc){
     tr.appendChild(el('td',{text:e.startTime||'—'}));
     tr.appendChild(el('td',{text:e.endTime||'—'}));
     tr.appendChild(el('td',{text:(e.hours??0).toFixed(2)}));
+    tr.appendChild(el('td',{text:e.timeType||'Regular'}));
     tr.appendChild(el('td',{text:e.description||''}));
     tr.appendChild(el('td',{text:e.glCode||''}));
     r_rows.appendChild(tr);
   });
 
-  r_reg_hours.textContent = (calc.regularHours ?? 0).toFixed(2);
-  r_ot_hours.textContent = (calc.overtimeHours ?? 0).toFixed(2);
+  r_reg_hours.textContent = (sums.reg ?? 0).toFixed(2);
+  r_ot_hours.textContent = (sums.overtime ?? 0).toFixed(2);
+  r_sick.textContent = (sums.sick ?? 0).toFixed(2);
+  r_personal.textContent = (sums.personal ?? 0).toFixed(2);
+  r_vacation.textContent = (sums.vacation ?? 0).toFixed(2);
   r_gross.textContent = `$${(calc.grossPay ?? 0).toFixed(2)}`;
 
   if(p.payType==='salary'){
@@ -506,12 +540,6 @@ payTypeEl.addEventListener('change', ()=>{
   else { hourlyWrap.classList.remove('hide'); salaryWrap.classList.add('hide'); }
 });
 
-function recalcRowHoursOnChange(start, end, hours){
-  function update(){ hours.value = hoursBetween(start.value, end.value).toFixed(2); recalcTotals(); }
-  start.addEventListener('change', update);
-  end.addEventListener('change', update);
-}
-
 addRowBtn.addEventListener('click', ()=>addRow());
 clearRowsBtn.addEventListener('click', clearRows);
 printBtn.addEventListener('click', ()=>window.print());
@@ -522,8 +550,10 @@ reviewBtn.addEventListener('click', ()=>{
   if(errs.length){ showStatus(statusArea, errs.join('<br>'), 'error'); return; }
   showStatus(statusArea, '', 'hide');
 
-  const calc = computePay(p);
-  renderReview(p, calc);
+  const sums = summarizeHours(p.entries);
+  const calc = computePay(p, sums);
+  renderReview(p, sums, calc);
+
   document.getElementById('signature').value = '';
   document.getElementById('acknowledge').checked = false;
   modal.style.display = 'flex';
@@ -536,7 +566,9 @@ backBtn.addEventListener('click', ()=> modal.style.display='none');
 async function submitToFlow(payload){
   if(!FLOW_URL || FLOW_URL==="FLOW_URL_HERE") throw new Error("FLOW_URL not configured.");
 
-  const calc = computePay(payload);
+  const sums = summarizeHours(payload.entries);
+  const calc = computePay(payload, sums);
+
   const body = {
     employeeName: payload.employeeName,
     employeeId: payload.employeeId,
@@ -547,9 +579,13 @@ async function submitToFlow(payload){
     hourlyRate: payload.hourlyRate,
     annualSalary: payload.annualSalary,
     totalHours: payload.totalHours,
-    // Calculated fields:
-    regularHours: calc.regularHours,
-    overtimeHours: calc.overtimeHours,
+    // Breakdown:
+    hoursRegular: sums.reg,
+    hoursSick: sums.sick,
+    hoursPersonal: sums.personal,
+    hoursVacation: sums.vacation,
+    overtimeHours: sums.overtime,
+    // Calculated:
     grossPay: calc.grossPay,
     weeklySalary: calc.weeklySalary || null,
     hourlyEquivalent: calc.hourlyEq || null,
