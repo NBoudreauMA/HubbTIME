@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Town of Hubbardston — Employee Timesheet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --green:#0f3d2e; --green-soft:#2d6b55; --bg:#f7f8fa; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --card:#ffffff; --danger:#b91c1c;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{max-width:980px;margin:28px auto;padding:0 16px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    header.card{padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
+    header h1{font-size:18px;margin:0}
+    header .sub{color:var(--muted);font-size:12px}
+    .section{padding:18px 20px;border-top:1px solid var(--line)}
+    .grid{display:grid;gap:12px}
+    .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    label{font-weight:600;font-size:12px;margin-bottom:6px;display:block}
+    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+    input[type="date"],input[type="time"]{padding:8px 10px}
+    textarea{min-height:60px;resize:vertical}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{text-align:left;font-size:13px}
+    thead th{color:var(--muted);font-weight:700;padding:6px 8px}
+    tbody td{background:#fff;border:1px solid var(--line);padding:8px;border-left-width:1px}
+    tbody tr td:first-child{border-radius:10px 0 0 10px}
+    tbody tr td:last-child{border-radius:0 10px 10px 0}
+    tfoot td{padding:8px 0}
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .btn{background:var(--green);border-color:var(--green);color:#fff}
+    .btn-soft{background:var(--green-soft);border-color:var(--green-soft);color:#fff}
+    .btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+    .muted{color:var(--muted)}
+    .right{text-align:right}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
+    .review{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
+    .review .panel{width:min(920px,95vw);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid var(--line)}
+    .review .panel header{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+    .review .panel .body{padding:16px 18px}
+    .hr{height:1px;background:var(--line);margin:14px 0}
+    .alert{padding:10px 12px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px}
+    .success{padding:10px 12px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:10px}
+    .error{padding:10px 12px;border:1px solid #fecaca;background:#fef2f2;border-radius:10px;color:#7f1d1d}
+    .small{font-size:12px}
+    .nowrap{white-space:nowrap}
+    .hide{display:none !important}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="card" aria-label="Page Header">
+      <img alt="Town Seal" src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Seal_of_Massachusetts.svg" width="40" height="40" />
+      <div>
+        <h1>Town of Hubbardston — Employee Timesheet</h1>
+        <div class="sub">Review your entries below before signing and submitting.</div>
+      </div>
+    </header>
+
+    <div class="card" role="form" aria-label="Timesheet Form">
+      <div class="section">
+        <div class="grid cols-3">
+          <div>
+            <label for="employeeName">Employee Name</label>
+            <input id="employeeName" autocomplete="name" placeholder="First Last" />
+          </div>
+          <div>
+            <label for="employeeId">Employee ID</label>
+            <input id="employeeId" placeholder="e.g., 12345" />
+          </div>
+          <div>
+            <label for="department">Department</label>
+            <input id="department" placeholder="e.g., DPW, Clerk, Police" />
+          </div>
+        </div>
+        <div class="grid cols-2" style="margin-top:12px">
+          <div>
+            <label for="weekStart">Week Start (Mon)</label>
+            <input id="weekStart" type="date" />
+          </div>
+          <div>
+            <label for="notes">Notes (optional)</label>
+            <input id="notes" placeholder="Optional note to supervisor" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="btnrow" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="muted">Daily entries</div>
+          <div class="btnrow">
+            <button type="button" id="addRowBtn" class="btn-soft">+ Add Day</button>
+            <button type="button" id="clearRowsBtn" class="btn-danger">Clear All</button>
+          </div>
+        </div>
+
+        <div class="alert small" style="margin-bottom:10px">
+          Tip: Start/End will auto-calc hours. GL Code is required (use your official code like <span class="nowrap">1000-192-5200</span>). You’ll review everything before signing.
+        </div>
+
+        <div style="overflow:auto">
+          <table aria-label="Timesheet Entries">
+            <thead>
+              <tr>
+                <th style="min-width:120px">Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Hours</th>
+                <th style="min-width:200px">Description / Task</th>
+                <th style="min-width:160px">GL Code</th>
+                <th class="right" style="min-width:80px">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="7" class="right">
+                  <span class="muted">Total Hours:</span>
+                  <span id="totalHours" class="pill">0.00</span>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="btnrow">
+          <button type="button" id="reviewBtn" class="btn">Review Timesheet</button>
+          <button type="button" id="printBtn">Print</button>
+        </div>
+        <div id="statusArea" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <p class="small muted" style="margin:10px 2px">
+      Need help? Contact the Town Administrator’s Office. This tool is provided for convenience; official policies and contracts govern all compensable time.
+    </p>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="review" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+    <div class="panel">
+      <header>
+        <div>
+          <div id="reviewTitle" style="font-weight:700">Review Your Timesheet</div>
+          <div class="small muted">Confirm details, provide your signature, then submit.</div>
+        </div>
+        <button type="button" id="closeReview">Close</button>
+      </header>
+      <div class="body">
+        <div class="grid cols-3">
+          <div><div class="muted small">Employee</div><div id="r_emp" style="font-weight:600"></div></div>
+          <div><div class="muted small">Employee ID</div><div id="r_id"></div></div>
+          <div><div class="muted small">Department</div><div id="r_dept"></div></div>
+        </div>
+        <div class="grid cols-2" style="margin-top:10px">
+          <div><div class="muted small">Week Start</div><div id="r_week"></div></div>
+          <div><div class="muted small">Total Hours</div><div id="r_total" class="pill"></div></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div style="overflow:auto">
+          <table aria-label="Review Entries">
+            <thead>
+              <tr>
+                <th>Date</th><th>Start</th><th>End</th><th>Hours</th><th>Description</th><th>GL Code</th>
+              </tr>
+            </thead>
+            <tbody id="r_rows"></tbody>
+          </table>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="grid cols-2">
+          <div>
+            <label for="signature">Type Your Full Name (Signature)</label>
+            <input id="signature" placeholder="Full legal name" />
+            <div class="small muted">By typing your name, you certify the entries are accurate and complete.</div>
+          </div>
+          <div>
+            <label for="acknowledge" class="small">Acknowledgement</label>
+            <div><input type="checkbox" id="acknowledge" /> I understand this submission is subject to Town policies, collective bargaining, and applicable state & federal law.</div>
+          </div>
+        </div>
+
+        <div class="btnrow" style="margin-top:14px">
+          <button type="button" id="submitBtn" class="btn">Submit Timesheet</button>
+          <button type="button" id="backBtn">Back to Edit</button>
+        </div>
+        <div id="reviewStatus" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===========================
+   CONFIGURE THESE TWO VALUES
+   =========================== */
+const FLOW_URL = "FLOW_URL_HERE";               // <-- paste your Power Automate HTTP trigger URL
+const X_HUBB_TOKEN = "X_HUBB_TOKEN_VALUE";      // <-- set any long random string; check it in your Flow
+
+/* Optional: seed GL codes for datalist (edit to your official list or leave empty) */
+const GL_CODES = [
+  "1000-192-5200", "1000-210-5110", "1000-420-5400",
+  "1000-292-5300", "2000-123-5200", "6100-300-5700"
+];
+
+/* UI Elements */
+const rowsEl = document.getElementById('rows');
+const totalHoursEl = document.getElementById('totalHours');
+const addRowBtn = document.getElementById('addRowBtn');
+const clearRowsBtn = document.getElementById('clearRowsBtn');
+const reviewBtn = document.getElementById('reviewBtn');
+const printBtn = document.getElementById('printBtn');
+const statusArea = document.getElementById('statusArea');
+
+const modal = document.getElementById('reviewModal');
+const closeReview = document.getElementById('closeReview');
+const submitBtn = document.getElementById('submitBtn');
+const backBtn = document.getElementById('backBtn');
+const reviewStatus = document.getElementById('reviewStatus');
+
+const r_emp = document.getElementById('r_emp');
+const r_id = document.getElementById('r_id');
+const r_dept = document.getElementById('r_dept');
+const r_week = document.getElementById('r_week');
+const r_total = document.getElementById('r_total');
+const r_rows = document.getElementById('r_rows');
+
+function el(tag, attrs={}, children=[]) {
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='class') e.className = v;
+    else if(k==='text') e.textContent = v;
+    else e.setAttribute(k, v);
+  });
+  children.forEach(c => e.appendChild(c));
+  return e;
+}
+
+function hoursBetween(start, end){
+  if(!start || !end) return 0;
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let s = sh + sm/60;
+  let e = eh + em/60;
+  // if end is after midnight, assume same-day entry; adjust here if you allow overnight
+  const diff = Math.max(0, e - s);
+  return Math.round(diff * 100) / 100;
+}
+
+function recalcTotals(){
+  let total = 0;
+  document.querySelectorAll('.row-hours').forEach(inp=>{
+    const v = parseFloat(inp.value||'0');
+    total += isNaN(v) ? 0 : v;
+  });
+  totalHoursEl.textContent = total.toFixed(2);
+}
+
+function makeGLDatalistCell(inputId){
+  const wrap = el('div', {});
+  const input = el('input', { id: inputId, list:'gl-list', placeholder:'e.g., 1000-192-5200', class:'gl-input' });
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function ensureGLDatalist(){
+  if(document.getElementById('gl-list')) return;
+  const dl = el('datalist', { id:'gl-list' });
+  GL_CODES.forEach(code => dl.appendChild(el('option', { value: code })));
+  document.body.appendChild(dl);
+}
+
+function addRow(prefill){
+  ensureGLDatalist();
+  const tr = el('tr', {});
+  const idSuffix = Math.random().toString(36).slice(2,8);
+
+  const date = el('input', { type:'date', class:'row-date' });
+  const start = el('input', { type:'time', class:'row-start' });
+  const end = el('input', { type:'time', class:'row-end' });
+  const hours = el('input', { type:'number', step:'0.01', min:'0', class:'row-hours', readonly:'readonly' });
+  const desc = el('input', { class:'row-desc', placeholder:'Task or summary' });
+  const glCell = makeGLDatalistCell('gl-'+idSuffix);
+  const gl = glCell.querySelector('input');
+  const rm = el('button', { class:'btn-danger' , type:'button' , text:'Remove' });
+
+  function updateHours(){
+    hours.value = hoursBetween(start.value, end.value).toFixed(2);
+    recalcTotals();
+  }
+  start.addEventListener('change', updateHours);
+  end.addEventListener('change', updateHours);
+
+  if(prefill){
+    date.value = prefill.date || '';
+    start.value = prefill.startTime || '';
+    end.value = prefill.endTime || '';
+    hours.value = (prefill.hours ?? 0).toFixed(2);
+    desc.value = prefill.description || '';
+    gl.value = prefill.glCode || '';
+  } else {
+    hours.value = '0.00';
+  }
+
+  rm.addEventListener('click', ()=>{
+    tr.remove();
+    recalcTotals();
+  });
+
+  tr.appendChild(el('td', {}, [date]));
+  tr.appendChild(el('td', {}, [start]));
+  tr.appendChild(el('td', {}, [end]));
+  tr.appendChild(el('td', {}, [hours]));
+  tr.appendChild(el('td', {}, [desc]));
+  tr.appendChild(el('td', {}, [glCell]));
+  tr.appendChild(el('td', { class:'right' }, [rm]));
+  rowsEl.appendChild(tr);
+  recalcTotals();
+}
+
+function clearRows(){
+  rowsEl.innerHTML = '';
+  recalcTotals();
+}
+
+function payloadFromForm(){
+  const entries = [];
+  rowsEl.querySelectorAll('tr').forEach(tr=>{
+    const date = tr.querySelector('.row-date')?.value?.trim();
+    const startTime = tr.querySelector('.row-start')?.value?.trim();
+    const endTime = tr.querySelector('.row-end')?.value?.trim();
+    const hours = parseFloat(tr.querySelector('.row-hours')?.value || '0') || 0;
+    const description = tr.querySelector('.row-desc')?.value?.trim() || '';
+    const glCode = tr.querySelector('.gl-input')?.value?.trim() || '';
+    if(date || hours || glCode){
+      entries.push({ date, startTime, endTime, hours, description, glCode });
+    }
+  });
+
+  const totalHours = entries.reduce((a,b)=>a + (parseFloat(b.hours)||0), 0);
+
+  return {
+    employeeName: document.getElementById('employeeName').value.trim(),
+    employeeId: document.getElementById('employeeId').value.trim(),
+    department: document.getElementById('department').value.trim(),
+    weekStart: document.getElementById('weekStart').value,
+    notes: document.getElementById('notes').value.trim(),
+    totalHours: Math.round(totalHours*100)/100,
+    entries
+  };
+}
+
+function validateForReview(p){
+  const errs = [];
+  if(!p.employeeName) errs.push("Employee Name is required.");
+  if(!p.weekStart) errs.push("Week Start is required.");
+  if(!p.entries.length) errs.push("Add at least one day entry.");
+  const badGL = p.entries.filter(e=>!e.glCode);
+  if(badGL.length) errs.push("GL Code is required for each entry.");
+  return errs;
+}
+
+function renderReview(p){
+  r_emp.textContent = p.employeeName || '—';
+  r_id.textContent = p.employeeId || '—';
+  r_dept.textContent = p.department || '—';
+  r_week.textContent = p.weekStart || '—';
+  r_total.textContent = (p.totalHours ?? 0).toFixed(2);
+
+  r_rows.innerHTML = '';
+  p.entries.forEach(e=>{
+    const tr = el('tr', {});
+    tr.appendChild(el('td', { text: e.date || '—' }));
+    tr.appendChild(el('td', { text: e.startTime || '—' }));
+    tr.appendChild(el('td', { text: e.endTime || '—' }));
+    tr.appendChild(el('td', { text: (e.hours??0).toFixed(2) }));
+    tr.appendChild(el('td', { text: e.description || '' }));
+    tr.appendChild(el('td', { text: e.glCode || '' }));
+    r_rows.appendChild(tr);
+  });
+}
+
+function showStatus(target, html, cls){
+  target.innerHTML = `<div class="${cls}">${html}</div>`;
+}
+
+/* Events */
+addRowBtn.addEventListener('click', ()=>addRow());
+clearRowsBtn.addEventListener('click', clearRows);
+printBtn.addEventListener('click', ()=>window.print());
+
+reviewBtn.addEventListener('click', ()=>{
+  const p = payloadFromForm();
+  const errs = validateForReview(p);
+  if(errs.length){
+    showStatus(statusArea, errs.join('<br>'), 'error');
+    return;
+  }
+  showStatus(statusArea, '', 'hide');
+  renderReview(p);
+  document.getElementById('signature').value = '';
+  document.getElementById('acknowledge').checked = false;
+  modal.style.display = 'flex';
+  document.getElementById('closeReview').focus();
+});
+
+closeReview.addEventListener('click', ()=> modal.style.display = 'none');
+backBtn.addEventListener('click', ()=> modal.style.display = 'none');
+
+async function submitToFlow(payload){
+  if(!FLOW_URL || FLOW_URL === "FLOW_URL_HERE"){
+    throw new Error("FLOW_URL not configured.");
+  }
+  const body = {
+    employeeName: payload.employeeName,
+    employeeId: payload.employeeId,
+    department: payload.department,
+    weekStart: payload.weekStart,
+    notes: payload.notes,
+    totalHours: payload.totalHours,
+    signature: (document.getElementById('signature').value || '').trim(),
+    entries: payload.entries
+  };
+  const res = await fetch(FLOW_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-hubb-token": X_HUBB_TOKEN
+    },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const t = await res.text().catch(()=> '');
+    throw new Error(`Flow returned ${res.status}. ${t}`);
+  }
+  return res.json().catch(()=> ({}));
+}
+
+submitBtn.addEventListener('click', async ()=>{
+  const sig = (document.getElementById('signature').value || '').trim();
+  const ack = document.getElementById('acknowledge').checked;
+  const p = payloadFromForm();
+
+  const errs = validateForReview(p);
+  if(!sig) errs.push("Signature is required.");
+  if(!ack) errs.push("Acknowledgement is required.");
+
+  if(errs.length){
+    showStatus(reviewStatus, errs.join('<br>'), 'error');
+    return;
+  }
+
+  showStatus(reviewStatus, "Submitting… Please wait.", "alert");
+  try{
+    await submitToFlow(p);
+    showStatus(reviewStatus, "Submitted successfully. Thank you!", "success");
+    // optional: clear form after success
+    setTimeout(()=>{
+      modal.style.display = 'none';
+      document.getElementById('employeeName').value = '';
+      document.getElementById('employeeId').value = '';
+      document.getElementById('department').value = '';
+      document.getElementById('weekStart').value = '';
+      document.getElementById('notes').value = '';
+      clearRows();
+    }, 800);
+  }catch(err){
+    showStatus(reviewStatus, "Submission failed: " + err.message, "error");
+  }
+});
+
+/* Start with 5 rows for convenience */
+for(let i=0;i<5;i++) addRow();
+</script>
+</body>
+</html>
