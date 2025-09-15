@@ -5,7 +5,7 @@
    - Quick search for module cards
    - Theme toggle (persisted)
    ========================================================= */
-(function () {
+window.HubbTIME = (function (prev) {
   'use strict';
 
   // Mobile nav
@@ -729,5 +729,6 @@ window.HubbTIME = (function () {
   api.defaultGL    = getDefaultGL;
 
   // expose API
-  return api;
-})();
+return Object.assign(prev || {}, api);
+})(window.HubbTIME);
+
