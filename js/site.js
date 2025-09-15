@@ -722,6 +722,11 @@ window.HubbTIME = (function () {
       if (btn) btn.disabled = false;
     }
   }
+  // --- Export tiny hooks for supplemental scripts ---
+  api.addRow       = addTimeRow;
+  api.addRowWith   = addTimeRowWith;
+  api.recalc       = calculateTotals;
+  api.defaultGL    = getDefaultGL;
 
   // expose API
   return api;
