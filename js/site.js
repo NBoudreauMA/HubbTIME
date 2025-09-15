@@ -52,7 +52,6 @@
       root.dataset.theme = mode;
       themeToggle.setAttribute('aria-pressed', String(mode === 'light'));
       themeToggle.textContent = mode === 'light' ? 'Dark' : 'Light';
-      // Optional light overrides to match your palette
       if (mode === 'light') {
         root.style.setProperty('--bg', '#f5faf7');
         root.style.setProperty('--panel', '#ffffff');
@@ -245,6 +244,158 @@ window.HubbTIME = (function () {
     { number: 8, start: "2025-10-05", end: "2025-10-18", due: "2025-10-20", check: "2025-10-23" }
   ];
 
+  /* =========================================================
+     Personnel GL Directory + Helpers
+     ---------------------------------------------------------
+     Auto-fill order:
+       1) EMPLOYEE_GLS[name] (if set)
+       2) POSITION_GLS[position]
+       3) DEPT_GLS[department]
+     Multi-position staff can expose a row chooser via EMPLOYEE_POSITIONS.
+     ========================================================= */
+
+  // Department-level Personnel GLs (fill with your authoritative set)
+  const DEPT_GLS = {
+    "Administration": "01-5100-5110",
+    "Accounting": "01-5100-5120",
+    "Treasurer/Collector": "01-5100-5130",
+    "Select Board": "01-5100-5140",
+    "Town Clerk": "01-5100-5150",
+    "Assessors/Land Use": "01-5100-5160",
+    "Land Use": "01-5100-5160",
+    "Facilities / Building & Grounds": "01-5100-5170",
+    "Building & Maintenance": "01-5100-5170",
+
+    "IT / Communications": "01-1550-5100",
+    "IT/Communications": "01-1550-5100",
+    "Cable / PEG Access": "01-1551-5100",
+    "Elections": "01-162A-5100",
+
+    "Public Works": "01-4200-5100",
+    "Police": "01-2100-5100",
+    "Police/Health": "01-2100-5100",
+    "Fire": "01-2200-5100",
+    "Building": "01-2410-5100",
+
+    "Library": "01-6100-5100",
+    "Recreation (Grant)": "01-6301-5100",
+
+    "Senior Center / COA": "01-5410-5100",
+    "Senior Center": "01-5410-5100",
+    "Senior Center / COA (Grant)": "01-5411-5100",
+
+    "School / Regional Assessment": "01-3000-5100",
+    "School Debt/Capital": "01-3001-5100",
+    "School Transportation": "01-3002-5100"
+  };
+
+  // Position-level mappings (optional; include where you have a specific GL)
+  const POSITION_GLS = {
+    "Town Administrator": "01-5100-5110",
+    "Executive Assistant / Cable Clerk": "01-5100-5140",
+    "Town Accountant": "01-5100-5120",
+    "Treasurer/Collector": "01-5100-5130",
+    "Assistant Treasurer": "01-5100-5130",
+    "Chief of Police": "01-2100-5100",
+    "Fire Chief": "01-2200-5100",
+    "DPW Director": "01-4200-5100",
+    "Library Assistant": "01-6100-5100",
+    "Inspectional Services Coordinator": "01-5100-5160",
+    "COA Director": "01-5410-5100",
+    "Building Commissioner": "01-2410-5100",
+    "Police Admin / BOH Clerk": "01-2100-5100",
+    "MART Driver": "01-3002-5100",
+    "MART Supervisor": "01-3002-5100",
+    "Call Firefighter": "01-2200-5100",
+    "Call LT/EMT": "01-2200-5100",
+    "Call LT/Paramedic": "01-2200-5100",
+    "Firefighter/AEMT": "01-2200-5100",
+    "Firefighter/Paramedic": "01-2200-5100",
+    "Call Firefighter/EMT": "01-2200-5100",
+    "Call Firefighter/Paramedic": "01-2200-5100",
+    "DPW Seasonal": "01-4200-5100",
+    "Facilities Maintenance": "01-5100-5170",
+    "Administrative Services Coordinator": "01-5100-5160"
+  };
+
+  // Employee-specific overrides (only if an individual must hit a unique GL)
+  const EMPLOYEE_GLS = {
+    // "FIRST LAST": "XX-XXXX-XXXX"
+    // e.g., "NATHAN BOUDREAU": "01-5100-5110"
+  };
+
+  // Multi-position choices per employee (shows a role picker per row)
+  const EMPLOYEE_POSITIONS = {
+    // Example:
+    // "NANCY PERRON": [
+    //   { title: "Police Admin", gl: "01-2100-5100" },
+    //   { title: "BOH Clerk",    gl: "01-5100-5190" }
+    // ]
+  };
+
+  // ---- Helpers for GL resolution & UI ----
+  function getEmployeeGLChoices(emp) {
+    if (!emp) return [];
+    const choices = (EMPLOYEE_POSITIONS[emp.name] || []).map(x => ({ label: `${x.title} — ${x.gl}`, value: x.gl }));
+
+    const empGL = EMPLOYEE_GLS[emp.name];
+    if (empGL) choices.push({ label: `Employee-specific — ${empGL}`, value: empGL });
+
+    if (emp.position && POSITION_GLS[emp.position]) {
+      const gl = POSITION_GLS[emp.position];
+      if (!choices.some(c => c.value === gl)) choices.push({ label: `Position (${emp.position}) — ${gl}`, value: gl });
+    }
+
+    const deptGL = DEPT_GLS[emp.department];
+    if (deptGL && !choices.some(c => c.value === deptGL)) {
+      choices.push({ label: `Department (${emp.department}) — ${deptGL}`, value: deptGL });
+    }
+
+    const seen = new Set();
+    return choices.filter(c => (seen.has(c.value) ? false : seen.add(c.value)));
+  }
+
+  function getDefaultGL(emp) {
+    if (!emp) return "";
+    if (EMPLOYEE_GLS[emp.name]) return EMPLOYEE_GLS[emp.name];
+    if (emp.position && POSITION_GLS[emp.position]) return POSITION_GLS[emp.position];
+    if (DEPT_GLS[emp.department]) return DEPT_GLS[emp.department];
+    return "";
+  }
+
+  function rebuildGLDatalistFor(emp) {
+    let dl = document.getElementById('glList');
+    if (!dl) {
+      dl = document.createElement('datalist');
+      dl.id = 'glList';
+      document.body.appendChild(dl);
+    }
+    dl.innerHTML = '';
+    const opts = getEmployeeGLChoices(emp);
+    opts.forEach(o => {
+      const el = document.createElement('option');
+      el.value = o.value;
+      el.label = o.label;
+      dl.appendChild(el);
+    });
+    const def = getDefaultGL(emp);
+    if (def && !opts.some(o => o.value === def)) {
+      const el = document.createElement('option');
+      el.value = def;
+      el.label = `Default — ${def}`;
+      dl.appendChild(el);
+    }
+  }
+
+  function reseedBlankGLs() {
+    const rows = Array.from(document.querySelectorAll('#timeBody tr'));
+    const def = getDefaultGL(currentEmployee);
+    rows.forEach(r => {
+      const glIn = r.querySelector('.gl-input');
+      if (glIn && !glIn.value && def) glIn.value = def;
+    });
+  }
+
   // ---- DOM init ----
   window.addEventListener('DOMContentLoaded', () => {
     // Employees <datalist>
@@ -310,12 +461,19 @@ window.HubbTIME = (function () {
         ? (emp.rate ? (currency(emp.rate) + ' annually') : '—')
         : (emp.rate ? (currency(emp.rate) + ' per hour') : '—');
     }
+
+    // Build GL choices and seed any blank GL inputs
+    rebuildGLDatalistFor(emp);
+    reseedBlankGLs();
+
     calculateTotals();
   }
 
   function clearEmployee() {
     currentEmployee = null;
     ['employeeIndex','employeeSearch','department','payType','rate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    // Clear GL list since no active employee
+    const dl = document.getElementById('glList'); if (dl) dl.innerHTML = '';
     calculateTotals();
   }
 
@@ -326,10 +484,17 @@ window.HubbTIME = (function () {
   }
 
   // ---- Table rows ----
-  function addTimeRow() { addTimeRowWith('', '', '', '', 'Regular', '', ''); }
+  function addTimeRow() {
+    const seedGL = getDefaultGL(currentEmployee);
+    addTimeRowWith('', '', '', '', 'Regular', seedGL, '');
+  }
 
   function addTimeRowWith(date, start, end, hours, type, glCode, description) {
     const tbody = $('#timeBody'); if (!tbody) return;
+
+    const initialGL = glCode || getDefaultGL(currentEmployee);
+    const hasMulti = currentEmployee && EMPLOYEE_POSITIONS[currentEmployee.name] && EMPLOYEE_POSITIONS[currentEmployee.name].length;
+
     const tr = document.createElement('tr');
     tr.innerHTML =
       `<td><input type="date" class="date-cell" value="${date || ''}"></td>
@@ -345,16 +510,31 @@ window.HubbTIME = (function () {
            <option${type==='Holiday'?' selected':''}>Holiday</option>
          </select>
        </td>
-       <td><input type="text" placeholder="GL Code" value="${glCode || ''}"></td>
+       <td>
+         <div class="gl-cell" style="display:flex; gap:.5rem; align-items:center;">
+           <input type="text" list="glList" class="gl-input" placeholder="GL Code" value="${initialGL || ''}" style="min-width:12ch;">
+           ${hasMulti ? `
+             <select class="gl-chooser">
+               <option value="">Choose role…</option>
+               ${EMPLOYEE_POSITIONS[currentEmployee.name].map(p => (
+                 `<option value="${p.gl}">${p.title} — ${p.gl}</option>`
+               )).join('')}
+             </select>` : ''}
+         </div>
+       </td>
        <td><input type="text" placeholder="Describe work or leave" value="${description || ''}"></td>
        <td><button type="button" class="btn danger remove-row">Remove</button></td>`;
+
     tbody.appendChild(tr);
 
-    tr.querySelector('.remove-row').addEventListener('click', () => { tr.remove(); calculateTotals(); });
+    // Pre-compute if regular + start/end provided
+    if (start && end && type === 'Regular') {
+      tr.querySelector('.time-hours').value = timeDiffHours(start, end).toFixed(2);
+    }
 
-    // Auto-calc hours when start/end change (Regular)
-    const inputs = tr.querySelectorAll('input, select');
-    inputs.forEach(inp => {
+    // Wire events
+    tr.querySelector('.remove-row').addEventListener('click', () => { tr.remove(); calculateTotals(); });
+    tr.querySelectorAll('input, select').forEach(inp => {
       inp.addEventListener('input', function () {
         const rowType = tr.querySelector('.time-type')?.value || 'Regular';
         if ((this.classList.contains('time-start') || this.classList.contains('time-end')) && rowType === 'Regular') {
@@ -366,9 +546,13 @@ window.HubbTIME = (function () {
       });
     });
 
-    // If we already had times, compute once
-    if (start && end && type === 'Regular') {
-      tr.querySelector('.time-hours').value = timeDiffHours(start, end).toFixed(2);
+    const chooser = tr.querySelector('.gl-chooser');
+    const glInput = tr.querySelector('.gl-input');
+    if (chooser && glInput) {
+      chooser.addEventListener('change', () => {
+        if (chooser.value) glInput.value = chooser.value;
+        calculateTotals();
+      });
     }
   }
 
@@ -384,7 +568,7 @@ window.HubbTIME = (function () {
     const start = new Date(currentWarrant.start + 'T00:00:00');
     const end   = new Date(currentWarrant.end   + 'T00:00:00');
 
-    // Your schedule template
+    // Schedule template (Mon–Fri)
     const schedule = {
       1: { start: "08:00", end: "16:00" }, // Mon
       2: { start: "08:00", end: "18:00" }, // Tue
@@ -397,7 +581,7 @@ window.HubbTIME = (function () {
       const dow = d.getDay();
       if (schedule[dow]) {
         const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        addTimeRowWith(iso, schedule[dow].start, schedule[dow].end, '', 'Regular', '', 'Town Hall hours');
+        addTimeRowWith(iso, schedule[dow].start, schedule[dow].end, '', 'Regular', getDefaultGL(currentEmployee), 'Town Hall hours');
       }
     }
     calculateTotals();
@@ -477,7 +661,7 @@ window.HubbTIME = (function () {
       const end  = row.querySelector('.time-end')?.value || '';
       const hours= parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
       const type = row.querySelector('.time-type')?.value || 'Regular';
-      const gl   = row.children[5]?.querySelector('input')?.value || '';
+      const gl   = row.querySelector('.gl-input')?.value || '';
       const desc = row.children[6]?.querySelector('input')?.value || '';
       if (date && hours > 0) {
         entries.push({ date, start, end, hours, type, gl, description: desc });
@@ -539,7 +723,6 @@ window.HubbTIME = (function () {
     }
   }
 
-  // expose small API (currently just the template helper)
+  // expose API
   return api;
 })();
-
