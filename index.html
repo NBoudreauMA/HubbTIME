@@ -1,643 +1,861 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
-  <title>Town of Hubbardston — Employee Timesheet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HubbTIME · HubbFISCAL</title>
+  <meta name="description" content="Town of Hubbardston — Enhanced Non-Union Biweekly Timesheet (HubbTIME)" />
+  <link rel="icon" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/main.css" />
   <style>
-    :root{
-      --green:#0f3d2e; --green-soft:#2d6b55; --bg:#f7f8fa; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --card:#ffffff; --danger:#b91c1c;
+    /* Enhanced HubbTIME Styles */
+    .auto-save-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--green);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-    .wrap{max-width:980px;margin:28px auto;padding:0 16px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-    header.card{padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
-    header h1{font-size:18px;margin:0}
-    header .sub{color:var(--muted);font-size:12px}
-    .section{padding:18px 20px;border-top:1px solid var(--line)}
-    .grid{display:grid;gap:12px}
-    .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    label{font-weight:600;font-size:12px;margin-bottom:6px;display:block}
-    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
-    input[type="date"],input[type="time"]{padding:8px 10px}
-    table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    th,td{text-align:left;font-size:13px}
-    thead th{color:var(--muted);font-weight:700;padding:6px 8px}
-    tbody td{background:#fff;border:1px solid var(--line);padding:8px}
-    tbody tr td:first-child{border-radius:10px 0 0 10px}
-    tbody tr td:last-child{border-radius:0 10px 10px 0}
-    tfoot td{padding:8px 0}
-    .btnrow{display:flex;gap:10px;flex-wrap:wrap}
-    button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
-    .btn{background:var(--green);border-color:var(--green);color:#fff}
-    .btn-soft{background:var(--green-soft);border-color:var(--green-soft);color:#fff}
-    .btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
-    .muted{color:var(--muted)}
-    .right{text-align:right}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
-    .review{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
-    .review .panel{width:min(960px,95vw);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid var(--line)}
-    .review .panel header{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-    .review .panel .body{padding:16px 18px}
-    .hr{height:1px;background:var(--line);margin:14px 0}
-    .alert{padding:10px 12px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px}
-    .success{padding:10px 12px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:10px}
-    .error{padding:10px 12px;border:1px solid #fecaca;background:#fef2f2;border-radius:10px;color:#7f1d1d}
-    .small{font-size:12px}
-    .nowrap{white-space:nowrap}
-    .hide{display:none !important}
+    .auto-save-indicator.show { opacity: 1; }
+    
+    .row-controls {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    .row-btn {
+      padding: 4px 6px;
+      font-size: 11px;
+      border: 1px solid var(--gray-light);
+      background: var(--panel);
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--muted);
+      min-width: 28px;
+      text-align: center;
+    }
+    .row-btn:hover {
+      background: var(--green-light);
+      color: white;
+      border-color: var(--green-light);
+    }
+    .row-btn.split {
+      background: #ffc107;
+      color: #000;
+      border-color: #ffc107;
+    }
+    .row-btn.split:hover {
+      background: #ffb300;
+    }
+    .row-btn.delete {
+      background: #dc3545;
+      color: white;
+      border-color: #dc3545;
+    }
+    .row-btn.delete:hover {
+      background: #c82333;
+    }
+    
+    .smart-suggestions {
+      position: absolute;
+      background: var(--card);
+      border: 1px solid var(--gray-light);
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    
+    .suggestion-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    .suggestion-item:hover { background: var(--bg); }
+    .suggestion-item:last-child { border-bottom: none; }
+    
+    .time-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      position: relative;
+    }
+    
+    .input-enhanced {
+      position: relative;
+    }
+    
+    .validation-error {
+      border-color: #dc3545 !important;
+      background: rgba(220, 53, 69, 0.1);
+    }
+    
+    .validation-message {
+      font-size: 11px;
+      color: #dc3545;
+      margin-top: 4px;
+    }
+    
+    .quick-time-btns {
+      display: flex;
+      gap: 2px;
+      margin-top: 4px;
+    }
+    
+    .quick-time-btn {
+      padding: 2px 6px;
+      font-size: 10px;
+      border: 1px solid var(--gray-light);
+      background: var(--panel);
+      border-radius: 3px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .quick-time-btn:hover {
+      background: var(--green-light);
+      color: white;
+    }
+    
+    .hours-calculator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    
+    .gl-smart-select {
+      position: relative;
+    }
+    
+    .recent-entries {
+      background: var(--card);
+      border: 1px solid var(--gray-light);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .recent-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--gray-light);
+      cursor: pointer;
+    }
+    .recent-entry:hover { 
+      background: var(--bg); 
+      padding: 6px 8px; 
+      margin: 0 -8px; 
+      border-radius: 4px; 
+    }
+    .recent-entry:last-child { border-bottom: none; }
+    
+    .smart-total {
+      background: linear-gradient(135deg, var(--green-light), var(--green));
+      color: white;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .progress-indicator {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: white;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    
+    .tableWrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--gray-light);
+    }
+    
+    .tableWrap table {
+      margin: 0;
+      border: none;
+    }
+    
+    .tableWrap th,
+    .tableWrap td {
+      border-right: 1px solid var(--gray-light);
+      border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .tableWrap th:last-child,
+    .tableWrap td:last-child {
+      border-right: none;
+    }
+    
+    .tableWrap tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--gray-light);
+      border-radius: 4px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 13px;
+    }
+    
+    .input:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(64, 145, 108, 0.2);
+    }
+    
+    .lbl {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .section {
+      margin-bottom: 24px;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 10px;
+      border: 1px solid var(--gray-light);
+    }
+    
+    .section h3 {
+      margin: 0 0 16px 0;
+      color: var(--green);
+      font-size: 18px;
+    }
+    
+    .hint {
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 12px;
+      border-left: 3px solid var(--green-light);
+    }
+    
+    @media (max-width: 768px) {
+      .row-controls {
+        flex-direction: column;
+        gap: 2px;
+      }
+      .row-btn {
+        min-width: 100%;
+        padding: 6px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="card" aria-label="Page Header">
-      <img alt="Town Seal" src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Seal_of_Massachusetts.svg" width="40" height="40" />
-      <div>
-        <h1>Town of Hubbardston — Employee Timesheet</h1>
-        <div class="sub">Review entries before signing. Select pay type to calculate your check.</div>
-      </div>
-    </header>
+  <div class="auto-save-indicator" id="autoSaveIndicator">Auto-saved</div>
+  
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <div class="card" role="form" aria-label="Timesheet Form">
-      <div class="section">
-        <div class="grid cols-3">
-          <div>
-            <label for="employeeName">Employee Name</label>
-            <input id="employeeName" autocomplete="name" placeholder="First Last" />
-          </div>
-          <div>
-            <label for="employeeId">Employee ID</label>
-            <input id="employeeId" placeholder="e.g., 12345" />
-          </div>
-          <div>
-            <label for="department">Department</label>
-            <input id="department" placeholder="e.g., DPW, Clerk, Police" />
+  <header class="site-header">
+    <div class="brand">
+      <div class="seal" aria-hidden="true">H</div>
+      <div class="brand-text">
+        <h1 class="site-title">HubbFISCAL</h1>
+        <p class="tagline">Town of Hubbardston · Budget & Financial Management Hub</p>
+      </div>
+    </div>
+    <nav class="main-nav" aria-label="Primary" aria-expanded="false">
+      <button class="nav-toggle" aria-expanded="false" aria-controls="navList">Menu</button>
+      <ul id="navList">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="fy27/index.html">FY27 Budget</a></li>
+        <li><a href="reports/index.html">Reports</a></li>
+        <li><a href="benchmarks/index.html">Benchmarks</a></li>
+        <li><a href="capital/index.html">Capital</a></li>
+        <li><a href="grants/index.html">Grants</a></li>
+        <li><a href="checkbook/index.html">Checkbook</a></li>
+        <li><a href="meetings/index.html">Meetings</a></li>
+        <li><a href="participate/index.html">Participate</a></li>
+        <li><a href="Hubbtime.html" class="active">HubbTIME</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main" class="tools" style="padding-top:1.25rem;">
+    <div class="container" id="hubbtimeContainer">
+      <div class="header">
+        <h1 style="margin:0 0 5px 0; font-size:24px;">Town of Hubbardston — Enhanced Biweekly Timesheet</h1>
+        <p style="margin:0; opacity:.9;">Smart timesheet system with split shift support and automated calculations</p>
+      </div>
+
+      <form id="timesheetForm" style="padding:0 0 20px;">
+        <div id="systemMsg" class="alert info" role="status" aria-live="polite" style="display:none;"></div>
+
+        <!-- Recent Entries for Quick Copy -->
+        <div class="recent-entries" id="recentEntries" style="display:none;">
+          <h4 style="margin:0 0 8px 0; font-size:14px;">📋 Recent Entries (Click to Copy)</h4>
+          <div id="recentEntriesList"></div>
+        </div>
+
+        <div class="section">
+          <h3>👤 Employee Information</h3>
+          <div class="grid">
+            <div>
+              <label class="lbl">Employee (search by name)</label>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input id="employeeSearch" list="employeeList" placeholder="Start typing a name…" autocomplete="off" class="input">
+                <button type="button" class="button ghost" id="clearEmployeeBtn">Clear</button>
+              </div>
+              <datalist id="employeeList"></datalist>
+              <input type="hidden" id="employeeIndex" value="">
+            </div>
+            <div>
+              <label class="lbl">Department</label>
+              <input id="department" class="input" readonly>
+            </div>
+            <div>
+              <label class="lbl">Pay Type</label>
+              <input id="payType" class="input" readonly>
+            </div>
+            <div>
+              <label class="lbl">Rate / Salary</label>
+              <input id="rate" class="input" readonly>
+            </div>
           </div>
         </div>
 
-        <div class="grid cols-4" style="margin-top:12px">
-          <div>
-            <label for="weekStart">Week Start (Mon)</label>
-            <input id="weekStart" type="date" />
-          </div>
-          <div>
-            <label for="payType">Pay Type</label>
-            <select id="payType">
-              <option value="hourly">Hourly</option>
-              <option value="salary">Salary (Annual)</option>
+        <div class="section">
+          <h3>⏰ Time Entries</h3>
+
+          <div style="margin-bottom:12px;">
+            <label class="lbl">Pay Period</label>
+            <select id="warrant" class="input" style="max-width:520px;">
+              <option value="">Select Pay Period…</option>
             </select>
           </div>
-          <div id="hourlyWrap">
-            <label for="hourlyRate">Hourly Rate ($/hr)</label>
-            <input id="hourlyRate" type="number" min="0" step="0.01" placeholder="e.g., 24.50" />
+
+          <div class="toolbar" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <button type="button" class="button" id="addRowBtn">➕ Add Row</button>
+            <button type="button" class="button ghost" id="townHallBtn">🏛️ Town Hall Hours</button>
+            <button type="button" class="button ghost" onclick="HubbTIME.addQuickTemplate('split')">🔄 Split Shift</button>
+            <button type="button" class="button ghost" onclick="HubbTIME.addQuickTemplate('overtime')">⏱️ Overtime Day</button>
+            <button type="button" class="button ghost" onclick="HubbTIME.addQuickTemplate('sick')">🤒 Sick Day</button>
+            <button type="button" class="button ghost" onclick="HubbTIME.addQuickTemplate('vacation')">🏖️ Vacation Day</button>
+            <button type="button" class="button" style="background:#b00020;color:#fff;" id="clearAllBtn">🗑️ Clear All</button>
           </div>
-          <div id="salaryWrap" class="hide">
-            <label for="annualSalary">Annual Salary ($/yr)</label>
-            <input id="annualSalary" type="number" min="0" step="0.01" placeholder="e.g., 62000" />
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="min-width:120px;">Date</th>
+                  <th style="min-width:80px;">Start</th>
+                  <th style="min-width:80px;">End</th>
+                  <th style="min-width:90px;">Hours</th>
+                  <th style="min-width:90px;">Type</th>
+                  <th style="min-width:150px;">GL Code</th>
+                  <th style="min-width:120px;">Description</th>
+                  <th style="min-width:140px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="timeBody">
+                <!-- Sample row to show the enhanced interface -->
+                <tr data-row-id="0">
+                  <td>
+                    <input type="date" class="input" name="date_0" id="date_0">
+                    <div class="quick-time-btns">
+                      <button type="button" class="quick-time-btn" onclick="HubbTIME.setToday(0)">Today</button>
+                      <button type="button" class="quick-time-btn" onclick="HubbTIME.setYesterday(0)">Yesterday</button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="time-input-group">
+                      <input type="time" class="input" name="start_0" id="start_0" onchange="HubbTIME.calculateHours(0)">
+                    </div>
+                    <div class="quick-time-btns">
+                      <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('start_0', '08:00')">8am</button>
+                      <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('start_0', '09:00')">9am</button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="time-input-group">
+                      <input type="time" class="input" name="end_0" id="end_0" onchange="HubbTIME.calculateHours(0)">
+                    </div>
+                    <div class="quick-time-btns">
+                      <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('end_0', '17:00')">5pm</button>
+                      <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('end_0', '16:00')">4pm</button>
+                    </div>
+                  </td>
+                  <td>
+                    <input type="number" class="input" name="hours_0" id="hours_0" step="0.25" min="0" max="24" readonly>
+                    <div class="hours-calculator" id="hoursCalc_0">Auto-calculated</div>
+                  </td>
+                  <td>
+                    <select class="input" name="type_0" id="type_0">
+                      <option value="Regular">Regular</option>
+                      <option value="Sick">Sick</option>
+                      <option value="Personal">Personal</option>
+                      <option value="Vacation">Vacation</option>
+                      <option value="Holiday">Holiday</option>
+                    </select>
+                  </td>
+                  <td>
+                    <div class="gl-smart-select">
+                      <select class="input" name="gl_0" id="gl_0">
+                        <option value="">Select GL Code...</option>
+                        <option value="01-122-5100">Selectboard (01-122-5100)</option>
+                        <option value="01-123-5100">Town Admin (01-123-5100)</option>
+                        <option value="01-131-5100">Finance (01-131-5100)</option>
+                        <option value="01-135-5100">Accounting (01-135-5100)</option>
+                        <option value="01-141-5100">Assessors (01-141-5100)</option>
+                        <option value="01-161-5100">Town Clerk (01-161-5100)</option>
+                        <option value="01-171-5100">Conservation (01-171-5100)</option>
+                        <option value="01-175-5100">Planning Board (01-175-5100)</option>
+                        <option value="01-192-5100">Town Hall (01-192-5100)</option>
+                      </select>
+                    </div>
+                  </td>
+                  <td>
+                    <input type="text" class="input" name="desc_0" id="desc_0" placeholder="Optional description...">
+                  </td>
+                  <td>
+                    <div class="row-controls">
+                      <button type="button" class="row-btn" onclick="HubbTIME.insertBefore(0)" title="Insert Before">⬆️</button>
+                      <button type="button" class="row-btn" onclick="HubbTIME.insertAfter(0)" title="Insert After">⬇️</button>
+                      <button type="button" class="row-btn split" onclick="HubbTIME.splitShift(0)" title="Split Shift">🔄</button>
+                      <button type="button" class="row-btn delete" onclick="HubbTIME.deleteRow(0)" title="Delete Row">❌</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="hint">
+            <strong>⚡ Smart Features:</strong> 
+            • <strong>Insert Before/After:</strong> Use ⬆️⬇️ buttons to add entries exactly where you need them
+            • <strong>Split Shift:</strong> Click 🔄 to automatically create a second entry for the same day (perfect for lunch breaks)
+            • <strong>Quick Times:</strong> Click time buttons for common start/end times
+            • <strong>Auto-Calculate:</strong> Hours automatically calculated when you enter start/end times
+            • <strong>Smart GL Codes:</strong> Recently used codes appear first
+            • <strong>Auto-Save:</strong> Your work is saved as you type
           </div>
         </div>
 
-        <div class="grid cols-2" style="margin-top:12px">
-          <div>
-            <label for="notes">Notes (optional)</label>
-            <input id="notes" placeholder="Optional note to supervisor" />
+        <div class="section">
+          <h3>📊 Summary</h3>
+
+          <div class="smart-total">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div>
+                <div style="font-size:14px; opacity:0.9;">Total Hours This Period</div>
+                <div id="totalHours" style="font-size:24px; font-weight:bold;">0.00</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:14px; opacity:0.9;">Estimated Gross Pay</div>
+                <div id="grossPay" style="font-size:24px; font-weight:bold;">$0.00</div>
+              </div>
+            </div>
+            <div class="progress-indicator">
+              <div class="progress-bar" id="hoursProgress" style="width:0%"></div>
+            </div>
+            <div style="font-size:12px; opacity:0.8; margin-top:4px;">
+              <span id="hoursRemaining">0</span> hours remaining to reach standard 80-hour period
+            </div>
+          </div>
+
+          <div class="grid-cards" style="display:flex; flex-wrap:wrap; gap:10px;">
+            <div class="pill" style="background:var(--card); border:1px solid var(--green-light); border-radius:999px; padding:8px 12px;">
+              <div style="font-size:11px; color:var(--green);">Regular</div>
+              <div id="sumRegular" style="font-weight:bold;">0.00</div>
+            </div>
+            <div class="pill" style="background:var(--card); border:1px solid #ffc107; border-radius:999px; padding:8px 12px;">
+              <div style="font-size:11px; color:#ffc107;">Sick</div>
+              <div id="sumSick" style="font-weight:bold;">0.00</div>
+            </div>
+            <div class="pill" style="background:var(--card); border:1px solid #17a2b8; border-radius:999px; padding:8px 12px;">
+              <div style="font-size:11px; color:#17a2b8;">Personal</div>
+              <div id="sumPersonal" style="font-weight:bold;">0.00</div>
+            </div>
+            <div class="pill" style="background:var(--card); border:1px solid #6f42c1; border-radius:999px; padding:8px 12px;">
+              <div style="font-size:11px; color:#6f42c1;">Vacation</div>
+              <div id="sumVacation" style="font-weight:bold;">0.00</div>
+            </div>
+            <div class="pill" style="background:var(--card); border:1px solid var(--green); border-radius:999px; padding:8px 12px;">
+              <div style="font-size:11px; color:var(--green);">Holiday</div>
+              <div id="sumHoliday" style="font-weight:bold;">0.00</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="section">
-        <div class="btnrow" style="justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div class="muted">Daily entries</div>
-          <div class="btnrow">
-            <button type="button" id="addRowBtn" class="btn-soft">+ Add Day</button>
-            <button type="button" id="clearRowsBtn" class="btn-danger">Clear All</button>
+        <div class="section">
+          <h3>🧮 GL Review — Hours & Cost Allocation</h3>
+          <div id="glReviewWrap" class="tableWrap">
+            <p style="text-align:center; color:var(--muted); padding:20px;">
+              Enter time entries above to see GL code breakdown and cost allocation
+            </p>
+          </div>
+          <div class="hint">
+            <strong>Smart Allocation:</strong> 
+            Hourly employees: Regular hours automatically convert to overtime (1.5x rate) when weekly total exceeds 40 hours. 
+            Salary employees: Biweekly salary split proportionally across GL codes based on time allocation.
           </div>
         </div>
 
-        <div class="alert small" style="margin-bottom:10px">
-          Start/End will auto-calc hours. GL Code is required (e.g., <span class="nowrap">1000-192-5200</span>).
-          <br><strong>Overtime is computed from Regular hours only</strong> (> 40 @ 1.5x). Sick/Personal/Vacation are paid at base rate and do not create OT.
+        <div style="padding:0 15px 15px; text-align:center;">
+          <button type="submit" class="button primary" id="submitBtn" style="padding:12px 24px; font-size:16px;">📤 Submit Timesheet</button>
+          <div id="submitStatus" class="hint" style="margin-top:8px;"></div>
         </div>
-
-        <div style="overflow:auto">
-          <table aria-label="Timesheet Entries">
-            <thead>
-              <tr>
-                <th style="min-width:120px">Date</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Hours</th>
-                <th style="min-width:160px">Type</th>
-                <th style="min-width:200px">Description / Task</th>
-                <th style="min-width:160px">GL Code</th>
-                <th class="right" style="min-width:80px">Remove</th>
-              </tr>
-            </thead>
-            <tbody id="rows"></tbody>
-            <tfoot>
-              <tr>
-                <td colspan="8" class="right">
-                  <span class="muted">Total Hours:</span>
-                  <span id="totalHours" class="pill">0.00</span>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="btnrow">
-          <button type="button" id="reviewBtn" class="btn">Review Timesheet</button>
-          <button type="button" id="printBtn">Print</button>
-        </div>
-        <div id="statusArea" style="margin-top:10px"></div>
-      </div>
+      </form>
     </div>
+  </main>
 
-    <p class="small muted" style="margin:10px 2px">
-      Need help? Contact the Town Administrator’s Office. Official policies and contracts govern compensable time.
-    </p>
-  </div>
+  <footer class="site-footer">
+    <p>© 2025 Town of Hubbardston, MA · <a href="mailto:admin@hubbardstonma.gov">admin@hubbardstonma.gov</a></p>
+  </footer>
 
-  <!-- Review Modal -->
-  <div class="review" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
-    <div class="panel">
-      <header>
-        <div>
-          <div id="reviewTitle" style="font-weight:700">Review Your Timesheet</div>
-          <div class="small muted">Confirm details, provide your signature, then submit.</div>
-        </div>
-        <button type="button" id="closeReview">Close</button>
-      </header>
-      <div class="body">
-        <div class="grid cols-3">
-          <div><div class="muted small">Employee</div><div id="r_emp" style="font-weight:600"></div></div>
-          <div><div class="muted small">Employee ID</div><div id="r_id"></div></div>
-          <div><div class="muted small">Department</div><div id="r_dept"></div></div>
-        </div>
-        <div class="grid cols-3" style="margin-top:10px">
-          <div><div class="muted small">Week Start</div><div id="r_week"></div></div>
-          <div><div class="muted small">Pay Type</div><div id="r_paytype" class="pill"></div></div>
-          <div><div class="muted small">Total Hours</div><div id="r_total" class="pill"></div></div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div style="overflow:auto">
-          <table aria-label="Review Entries">
-            <thead>
-              <tr>
-                <th>Date</th><th>Start</th><th>End</th><th>Hours</th><th>Type</th><th>Description</th><th>GL Code</th>
-              </tr>
-            </thead>
-            <tbody id="r_rows"></tbody>
-          </table>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="grid cols-3">
-          <div><div class="muted small">Regular Worked Hours (≤ 40)</div><div id="r_reg_hours" class="pill"></div></div>
-          <div><div class="muted small">Overtime Hours (> 40 Regular @ 1.5x)</div><div id="r_ot_hours" class="pill"></div></div>
-          <div><div class="muted small">Gross Pay (calc)</div><div id="r_gross" class="pill"></div></div>
-        </div>
-
-        <div class="grid cols-3" style="margin-top:10px">
-          <div><div class="muted small">Sick Hours</div><div id="r_sick" class="pill"></div></div>
-          <div><div class="muted small">Personal Hours</div><div id="r_personal" class="pill"></div></div>
-          <div><div class="muted small">Vacation Hours</div><div id="r_vacation" class="pill"></div></div>
-        </div>
-
-        <div class="grid cols-3" id="salaryBlock" style="margin-top:10px">
-          <div><div class="muted small">Annual Salary</div><div id="r_salary" class="pill"></div></div>
-          <div><div class="muted small">Weekly Salary (÷52)</div><div id="r_weekly" class="pill"></div></div>
-          <div><div class="muted small">Hourly Equivalent (÷2080)</div><div id="r_hourly_eq" class="pill"></div></div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="grid cols-2">
-          <div>
-            <label for="signature">Type Your Full Name (Signature)</label>
-            <input id="signature" placeholder="Full legal name" />
-            <div class="small muted">By typing your name, you certify the entries are accurate and complete.</div>
-          </div>
-          <div>
-            <label for="acknowledge" class="small">Acknowledgement</label>
-            <div><input type="checkbox" id="acknowledge" /> I understand this submission is subject to Town policies, collective bargaining, and applicable law.</div>
-          </div>
-        </div>
-
-        <div class="btnrow" style="margin-top:14px">
-          <button type="button" id="submitBtn" class="btn">Submit Timesheet</button>
-          <button type="button" id="backBtn">Back to Edit</button>
-        </div>
-        <div id="reviewStatus" style="margin-top:10px"></div>
-      </div>
-    </div>
-  </div>
-
-<script>
-/* ===========================
-   CONFIGURE THESE TWO VALUES
-   =========================== */
-const FLOW_URL = "FLOW_URL_HERE";               // <-- Power Automate HTTP trigger URL
-const X_HUBB_TOKEN = "X_HUBB_TOKEN_VALUE";      // <-- Secret checked in Flow
-
-/* Optional GL codes list (for datalist dropdown) */
-const GL_CODES = [
-  "1000-192-5200","1000-210-5110","1000-420-5400","1000-292-5300","2000-123-5200","6100-300-5700"
-];
-
-/* Elements */
-const rowsEl = document.getElementById('rows');
-const totalHoursEl = document.getElementById('totalHours');
-const addRowBtn = document.getElementById('addRowBtn');
-const clearRowsBtn = document.getElementById('clearRowsBtn');
-const reviewBtn = document.getElementById('reviewBtn');
-const printBtn = document.getElementById('printBtn');
-const statusArea = document.getElementById('statusArea');
-
-const payTypeEl = document.getElementById('payType');
-const hourlyWrap = document.getElementById('hourlyWrap');
-const salaryWrap = document.getElementById('salaryWrap');
-const hourlyRateEl = document.getElementById('hourlyRate');
-const annualSalaryEl = document.getElementById('annualSalary');
-
-const modal = document.getElementById('reviewModal');
-const closeReview = document.getElementById('closeReview');
-const submitBtn = document.getElementById('submitBtn');
-const backBtn = document.getElementById('backBtn');
-const reviewStatus = document.getElementById('reviewStatus');
-
-const r_emp = document.getElementById('r_emp');
-const r_id = document.getElementById('r_id');
-const r_dept = document.getElementById('r_dept');
-const r_week = document.getElementById('r_week');
-const r_total = document.getElementById('r_total');
-const r_rows = document.getElementById('r_rows');
-
-const r_paytype = document.getElementById('r_paytype');
-const r_reg_hours = document.getElementById('r_reg_hours');
-const r_ot_hours = document.getElementById('r_ot_hours');
-const r_gross = document.getElementById('r_gross');
-const r_salaryBlock = document.getElementById('salaryBlock');
-const r_salary = document.getElementById('r_salary');
-const r_weekly = document.getElementById('r_weekly');
-const r_hourly_eq = document.getElementById('r_hourly_eq');
-
-const r_sick = document.getElementById('r_sick');
-const r_personal = document.getElementById('r_personal');
-const r_vacation = document.getElementById('r_vacation');
-
-function el(tag, attrs={}, children=[]){
-  const e = document.createElement(tag);
-  Object.entries(attrs).forEach(([k,v])=>{
-    if(k==='class') e.className=v;
-    else if(k==='text') e.textContent=v;
-    else e.setAttribute(k,v);
-  });
-  children.forEach(c=>e.appendChild(c));
-  return e;
-}
-
-function hoursBetween(start, end){
-  if(!start || !end) return 0;
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  let s = sh + sm/60;
-  let e = eh + em/60;
-  const diff = Math.max(0, e - s);
-  return Math.round(diff*100)/100;
-}
-
-function recalcTotals(){
-  let total=0;
-  document.querySelectorAll('.row-hours').forEach(inp=>{
-    const v = parseFloat(inp.value||'0');
-    total += isNaN(v) ? 0 : v;
-  });
-  totalHoursEl.textContent = total.toFixed(2);
-}
-
-function makeTypeSelect(){
-  const sel = el('select', { class:'row-type' });
-  ["Regular","Sick","Personal","Vacation"].forEach(t=>{
-    sel.appendChild(el('option', { value:t, text:t }));
-  });
-  return sel;
-}
-
-function makeGLDatalistCell(){
-  const wrap = el('div', {});
-  const input = el('input', { list:'gl-list', placeholder:'e.g., 1000-192-5200', class:'gl-input' });
-  wrap.appendChild(input);
-  return wrap;
-}
-
-function ensureGLDatalist(){
-  if(document.getElementById('gl-list')) return;
-  const dl = el('datalist', { id:'gl-list' });
-  GL_CODES.forEach(code => dl.appendChild(el('option', { value: code })));
-  document.body.appendChild(dl);
-}
-
-function addRow(prefill){
-  ensureGLDatalist();
-  const tr = el('tr', {});
-  const date = el('input', { type:'date', class:'row-date' });
-  const start = el('input', { type:'time', class:'row-start' });
-  const end = el('input', { type:'time', class:'row-end' });
-  const hours = el('input', { type:'number', step:'0.01', min:'0', class:'row-hours', readonly:'readonly' });
-  const typ = makeTypeSelect();
-  const desc = el('input', { class:'row-desc', placeholder:'Task or summary' });
-  const glCell = makeGLDatalistCell();
-  const gl = glCell.querySelector('input');
-  const rm = el('button', { class:'btn-danger', type:'button', text:'Remove' });
-
-  function updateHours(){
-    hours.value = hoursBetween(start.value, end.value).toFixed(2);
-    recalcTotals();
-  }
-  start.addEventListener('change', updateHours);
-  end.addEventListener('change', updateHours);
-
-  if(prefill){
-    date.value = prefill.date || '';
-    start.value = prefill.startTime || '';
-    end.value = prefill.endTime || '';
-    hours.value = (prefill.hours ?? 0).toFixed(2);
-    desc.value = prefill.description || '';
-    gl.value = prefill.glCode || '';
-    if(prefill.timeType) typ.value = prefill.timeType;
-  } else {
-    hours.value = '0.00';
-  }
-
-  rm.addEventListener('click', ()=>{ tr.remove(); recalcTotals(); });
-
-  tr.appendChild(el('td', {}, [date]));
-  tr.appendChild(el('td', {}, [start]));
-  tr.appendChild(el('td', {}, [end]));
-  tr.appendChild(el('td', {}, [hours]));
-  tr.appendChild(el('td', {}, [typ]));
-  tr.appendChild(el('td', {}, [desc]));
-  tr.appendChild(el('td', {}, [glCell]));
-  tr.appendChild(el('td', { class:'right' }, [rm]));
-  rowsEl.appendChild(tr);
-  recalcTotals();
-}
-
-function clearRows(){ rowsEl.innerHTML=''; recalcTotals(); }
-
-function summarizeHours(entries){
-  let total=0, reg=0, sick=0, pers=0, vac=0;
-  entries.forEach(e=>{
-    const h = parseFloat(e.hours)||0;
-    total += h;
-    switch((e.timeType||'Regular')){
-      case 'Sick': sick += h; break;
-      case 'Personal': pers += h; break;
-      case 'Vacation': vac += h; break;
-      default: reg += h; break;
-    }
-  });
-  // OT from Regular hours only
-  const ot = Math.max(0, reg - 40);
-  const regPaid = Math.min(reg, 40);
-  return {
-    total: +total.toFixed(2),
-    reg: +reg.toFixed(2),
-    sick: +sick.toFixed(2),
-    personal: +pers.toFixed(2),
-    vacation: +vac.toFixed(2),
-    overtime: +ot.toFixed(2),
-    regPaid: +regPaid.toFixed(2)
-  };
-}
-
-function computePay(parts, sums){
-  // returns {grossPay, weeklySalary, hourlyEq, proratedWeek}
-  const out = { grossPay:0, weeklySalary:0, hourlyEq:0, proratedWeek:0 };
-  if(parts.payType==='hourly'){
-    const rate = Math.max(0, parseFloat(parts.hourlyRate||'0')||0);
-    const gross = (sums.regPaid * rate) + (sums.overtime * rate * 1.5)
-                + ((sums.sick + sums.personal + sums.vacation) * rate);
-    out.grossPay = +gross.toFixed(2);
-  } else {
-    const salary = Math.max(0, parseFloat(parts.annualSalary||'0')||0);
-    const weekly = salary/52;
-    const hourly = salary/2080;
-    const paidHours = sums.total; // treat all categories as paid; change if your policy differs
-    const prorated = (paidHours/40)*weekly;
-    out.weeklySalary = +weekly.toFixed(2);
-    out.hourlyEq = +hourly.toFixed(2);
-    out.grossPay = +prorated.toFixed(2);
-    out.proratedWeek = +prorated.toFixed(2);
-  }
-  return out;
-}
-
-function payloadFromForm(){
-  const entries=[];
-  rowsEl.querySelectorAll('tr').forEach(tr=>{
-    const date = tr.querySelector('.row-date')?.value?.trim();
-    const startTime = tr.querySelector('.row-start')?.value?.trim();
-    const endTime = tr.querySelector('.row-end')?.value?.trim();
-    const hours = parseFloat(tr.querySelector('.row-hours')?.value || '0') || 0;
-    const timeType = tr.querySelector('.row-type')?.value || 'Regular';
-    const description = tr.querySelector('.row-desc')?.value?.trim() || '';
-    const glCode = tr.querySelector('.gl-input')?.value?.trim() || '';
-    if(date || hours || glCode){ entries.push({ date, startTime, endTime, hours, timeType, description, glCode }); }
-  });
-
-  const payType = payTypeEl.value;
-  const hourlyRate = parseFloat(hourlyRateEl.value||'0')||0;
-  const annualSalary = parseFloat(annualSalaryEl.value||'0')||0;
-
-  const sums = summarizeHours(entries);
-
-  return {
-    employeeName: document.getElementById('employeeName').value.trim(),
-    employeeId: document.getElementById('employeeId').value.trim(),
-    department: document.getElementById('department').value.trim(),
-    weekStart: document.getElementById('weekStart').value,
-    notes: document.getElementById('notes').value.trim(),
-    payType,
-    hourlyRate,
-    annualSalary,
-    totalHours: sums.total,
-    hoursBreakdown: {
-      regular: sums.reg,
-      sick: sums.sick,
-      personal: sums.personal,
-      vacation: sums.vacation,
-      overtime: sums.overtime
-    },
-    entries
-  };
-}
-
-function validateForReview(p){
-  const errs=[];
-  if(!p.employeeName) errs.push("Employee Name is required.");
-  if(!p.weekStart) errs.push("Week Start is required.");
-  if(!p.entries.length) errs.push("Add at least one day entry.");
-  const badGL = p.entries.filter(e=>!e.glCode);
-  if(badGL.length) errs.push("GL Code is required for each entry.");
-  if(p.payType==='hourly' && (!p.hourlyRate || p.hourlyRate<=0)) errs.push("Hourly rate is required for hourly employees.");
-  if(p.payType==='salary' && (!p.annualSalary || p.annualSalary<=0)) errs.push("Annual salary is required for salary employees.");
-  return errs;
-}
-
-function renderReview(p, sums, calc){
-  r_emp.textContent = p.employeeName || '—';
-  r_id.textContent = p.employeeId || '—';
-  r_dept.textContent = p.department || '—';
-  r_week.textContent = p.weekStart || '—';
-  r_total.textContent = (p.totalHours ?? 0).toFixed(2);
-  r_paytype.textContent = p.payType==="hourly" ? "Hourly" : "Salary";
-
-  r_rows.innerHTML='';
-  p.entries.forEach(e=>{
-    const tr = el('tr', {});
-    tr.appendChild(el('td',{text:e.date||'—'}));
-    tr.appendChild(el('td',{text:e.startTime||'—'}));
-    tr.appendChild(el('td',{text:e.endTime||'—'}));
-    tr.appendChild(el('td',{text:(e.hours??0).toFixed(2)}));
-    tr.appendChild(el('td',{text:e.timeType||'Regular'}));
-    tr.appendChild(el('td',{text:e.description||''}));
-    tr.appendChild(el('td',{text:e.glCode||''}));
-    r_rows.appendChild(tr);
-  });
-
-  r_reg_hours.textContent = (sums.reg ?? 0).toFixed(2);
-  r_ot_hours.textContent = (sums.overtime ?? 0).toFixed(2);
-  r_sick.textContent = (sums.sick ?? 0).toFixed(2);
-  r_personal.textContent = (sums.personal ?? 0).toFixed(2);
-  r_vacation.textContent = (sums.vacation ?? 0).toFixed(2);
-  r_gross.textContent = `$${(calc.grossPay ?? 0).toFixed(2)}`;
-
-  if(p.payType==='salary'){
-    r_salaryBlock.classList.remove('hide');
-    r_salary.textContent = `$${(p.annualSalary||0).toFixed(2)}`;
-    r_weekly.textContent = `$${(calc.weeklySalary||0).toFixed(2)}`;
-    r_hourly_eq.textContent = `$${(calc.hourlyEq||0).toFixed(2)}`;
-  } else {
-    r_salaryBlock.classList.add('hide');
-  }
-}
-
-function showStatus(target, html, cls){ target.innerHTML = `<div class="${cls}">${html}</div>`; }
-
-/* UI handlers */
-payTypeEl.addEventListener('change', ()=>{
-  if(payTypeEl.value==='salary'){ salaryWrap.classList.remove('hide'); hourlyWrap.classList.add('hide'); }
-  else { hourlyWrap.classList.remove('hide'); salaryWrap.classList.add('hide'); }
-});
-
-addRowBtn.addEventListener('click', ()=>addRow());
-clearRowsBtn.addEventListener('click', clearRows);
-printBtn.addEventListener('click', ()=>window.print());
-
-reviewBtn.addEventListener('click', ()=>{
-  const p = payloadFromForm();
-  const errs = validateForReview(p);
-  if(errs.length){ showStatus(statusArea, errs.join('<br>'), 'error'); return; }
-  showStatus(statusArea, '', 'hide');
-
-  const sums = summarizeHours(p.entries);
-  const calc = computePay(p, sums);
-  renderReview(p, sums, calc);
-
-  document.getElementById('signature').value = '';
-  document.getElementById('acknowledge').checked = false;
-  modal.style.display = 'flex';
-  document.getElementById('closeReview').focus();
-});
-
-document.getElementById('closeReview').addEventListener('click', ()=> modal.style.display='none');
-backBtn.addEventListener('click', ()=> modal.style.display='none');
-
-async function submitToFlow(payload){
-  if(!FLOW_URL || FLOW_URL==="FLOW_URL_HERE") throw new Error("FLOW_URL not configured.");
-
-  const sums = summarizeHours(payload.entries);
-  const calc = computePay(payload, sums);
-
-  const body = {
-    employeeName: payload.employeeName,
-    employeeId: payload.employeeId,
-    department: payload.department,
-    weekStart: payload.weekStart,
-    notes: payload.notes,
-    payType: payload.payType,
-    hourlyRate: payload.hourlyRate,
-    annualSalary: payload.annualSalary,
-    totalHours: payload.totalHours,
-    // Breakdown:
-    hoursRegular: sums.reg,
-    hoursSick: sums.sick,
-    hoursPersonal: sums.personal,
-    hoursVacation: sums.vacation,
-    overtimeHours: sums.overtime,
-    // Calculated:
-    grossPay: calc.grossPay,
-    weeklySalary: calc.weeklySalary || null,
-    hourlyEquivalent: calc.hourlyEq || null,
-    // Signature:
-    signature: (document.getElementById('signature').value||'').trim(),
-    // Entries:
-    entries: payload.entries
-  };
-
-  const res = await fetch(FLOW_URL, {
-    method: "POST",
-    headers: { "Content-Type":"application/json", "x-hubb-token": X_HUBB_TOKEN },
-    body: JSON.stringify(body)
-  });
-  if(!res.ok){
-    const t = await res.text().catch(()=> '');
-    throw new Error(`Flow returned ${res.status}. ${t}`);
-  }
-  return res.json().catch(()=> ({}));
-}
-
-document.getElementById('submitBtn').addEventListener('click', async ()=>{
-  const sig = (document.getElementById('signature').value||'').trim();
-  const ack = document.getElementById('acknowledge').checked;
-  const p = payloadFromForm();
-
-  const errs = validateForReview(p);
-  if(!sig) errs.push("Signature is required.");
-  if(!ack) errs.push("Acknowledgement is required.");
-  if(errs.length){ showStatus(reviewStatus, errs.join('<br>'), 'error'); return; }
-
-  showStatus(reviewStatus, "Submitting… Please wait.", "alert");
-  try{
-    await submitToFlow(p);
-    showStatus(reviewStatus, "Submitted successfully. Thank you!", "success");
-    setTimeout(()=>{
-      modal.style.display='none';
-      document.getElementById('employeeName').value='';
-      document.getElementById('employeeId').value='';
-      document.getElementById('department').value='';
-      document.getElementById('weekStart').value='';
-      document.getElementById('notes').value='';
-      hourlyRateEl.value=''; annualSalaryEl.value='';
-      clearRows();
-    }, 800);
-  }catch(err){
-    showStatus(reviewStatus, "Submission failed: " + err.message, "error");
-  }
-});
-
-/* Seed with some empty rows */
-for(let i=0;i<5;i++) addRow();
-</script>
+  <script>
+    // Enhanced HubbTIME JavaScript functionality
+    window.HubbTIME = {
+      rowCounter: 1,
+      
+      // Auto-save functionality
+      autoSave: function() {
+        const indicator = document.getElementById('autoSaveIndicator');
+        indicator.classList.add('show');
+        setTimeout(() => indicator.classList.remove('show'), 2000);
+        
+        // Save to localStorage
+        const formData = new FormData(document.getElementById('timesheetForm'));
+        localStorage.setItem('hubbtime_draft', JSON.stringify(Object.fromEntries(formData)));
+      },
+      
+      // Insert row before current row
+      insertBefore: function(rowId) {
+        const currentRow = document.querySelector(`tr[data-row-id="${rowId}"]`);
+        const newRow = this.createRow();
+        currentRow.parentNode.insertBefore(newRow, currentRow);
+        this.autoSave();
+      },
+      
+      // Insert row after current row
+      insertAfter: function(rowId) {
+        const currentRow = document.querySelector(`tr[data-row-id="${rowId}"]`);
+        const newRow = this.createRow();
+        currentRow.parentNode.insertBefore(newRow, currentRow.nextSibling);
+        this.autoSave();
+      },
+      
+      // Split shift - duplicate row with same date but different times
+      splitShift: function(rowId) {
+        const currentRow = document.querySelector(`tr[data-row-id="${rowId}"]`);
+        const dateInput = currentRow.querySelector('input[type="date"]');
+        const glSelect = currentRow.querySelector('select[name^="gl_"]');
+        const typeSelect = currentRow.querySelector('select[name^="type_"]');
+        
+        const newRow = this.createRow();
+        
+        // Copy date, GL code, and type to new row
+        const newDateInput = newRow.querySelector('input[type="date"]');
+        const newGlSelect = newRow.querySelector('select[name^="gl_"]');
+        const newTypeSelect = newRow.querySelector('select[name^="type_"]');
+        
+        if (dateInput.value) newDateInput.value = dateInput.value;
+        if (glSelect.value) newGlSelect.value = glSelect.value;
+        if (typeSelect.value) newTypeSelect.value = typeSelect.value;
+        
+        currentRow.parentNode.insertBefore(newRow, currentRow.nextSibling);
+        
+        // Focus on the start time of the new row
+        const newStartInput = newRow.querySelector('input[type="time"]');
+        newStartInput.focus();
+        
+        this.autoSave();
+      },
+      
+      // Delete row
+      deleteRow: function(rowId) {
+        const row = document.querySelector(`tr[data-row-id="${rowId}"]`);
+        if (document.querySelectorAll('tbody tr').length > 1) {
+          row.remove();
+          this.autoSave();
+        } else {
+          alert('Cannot delete the last row. Add another row first.');
+        }
+      },
+      
+      // Create new row
+      createRow: function() {
+        const rowId = this.rowCounter++;
+        const tbody = document.getElementById('timeBody');
+        const row = document.createElement('tr');
+        row.setAttribute('data-row-id', rowId);
+        
+        row.innerHTML = `
+          <td>
+            <input type="date" class="input" name="date_${rowId}" id="date_${rowId}">
+            <div class="quick-time-btns">
+              <button type="button" class="quick-time-btn" onclick="HubbTIME.setToday(${rowId})">Today</button>
+              <button type="button" class="quick-time-btn" onclick="HubbTIME.setYesterday(${rowId})">Yesterday</button>
+            </div>
+          </td>
+          <td>
+            <div class="time-input-group">
+              <input type="time" class="input" name="start_${rowId}" id="start_${rowId}" onchange="HubbTIME.calculateHours(${rowId})">
+            </div>
+            <div class="quick-time-btns">
+              <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('start_${rowId}', '08:00')">8am</button>
+              <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('start_${rowId}', '09:00')">9am</button>
+            </div>
+          </td>
+          <td>
+            <div class="time-input-group">
+              <input type="time" class="input" name="end_${rowId}" id="end_${rowId}" onchange="HubbTIME.calculateHours(${rowId})">
+            </div>
+            <div class="quick-time-btns">
+              <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('end_${rowId}', '17:00')">5pm</button>
+              <button type="button" class="quick-time-btn" onclick="HubbTIME.setTime('end_${rowId}', '16:00')">4pm</button>
+            </div>
+          </td>
+          <td>
+            <input type="number" class="input" name="hours_${rowId}" id="hours_${rowId}" step="0.25" min="0" max="24" readonly>
+            <div class="hours-calculator" id="hoursCalc_${rowId}">Auto-calculated</div>
+          </td>
+          <td>
+            <select class="input" name="type_${rowId}" id="type_${rowId}">
+              <option value="Regular">Regular</option>
+              <option value="Sick">Sick</option>
+              <option value="Personal">Personal</option>
+              <option value="Vacation">Vacation</option>
+              <option value="Holiday">Holiday</option>
+            </select>
+          </td>
+          <td>
+            <div class="gl-smart-select">
+              <select class="input" name="gl_${rowId}" id="gl_${rowId}">
+                <option value="">Select GL Code...</option>
+                <option value="01-122-5100">Selectboard (01-122-5100)</option>
+                <option value="01-123-5100">Town Admin (01-123-5100)</option>
+                <option value="01-131-5100">Finance (01-131-5100)</option>
+                <option value="01-135-5100">Accounting (01-135-5100)</option>
+                <option value="01-141-5100">Assessors (01-141-5100)</option>
+                <option value="01-161-5100">Town Clerk (01-161-5100)</option>
+                <option value="01-171-5100">Conservation (01-171-5100)</option>
+                <option value="01-175-5100">Planning Board (01-175-5100)</option>
+                <option value="01-192-5100">Town Hall (01-192-5100)</option>
+              </select>
+            </div>
+          </td>
+          <td>
+            <input type="text" class="input" name="desc_${rowId}" id="desc_${rowId}" placeholder="Optional description...">
+          </td>
+          <td>
+            <div class="row-controls">
+              <button type="button" class="row-btn" onclick="HubbTIME.insertBefore(${rowId})" title="Insert Before">⬆️</button>
+              <button type="button" class="row-btn" onclick="HubbTIME.insertAfter(${rowId})" title="Insert After">⬇️</button>
+              <button type="button" class="row-btn split" onclick="HubbTIME.splitShift(${rowId})" title="Split Shift">🔄</button>
+              <button type="button" class="row-btn delete" onclick="HubbTIME.deleteRow(${rowId})" title="Delete Row">❌</button>
+            </div>
+          </td>
+        `;
+        
+        return row;
+      },
+      
+      // Set date to today
+      setToday: function(rowId) {
+        const input = document.getElementById(`date_${rowId}`);
+        input.value = new Date().toISOString().split('T')[0];
+        this.autoSave();
+      },
+      
+      // Set date to yesterday
+      setYesterday: function(rowId) {
+        const input = document.getElementById(`date_${rowId}`);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        input.value = yesterday.toISOString().split('T')[0];
+        this.autoSave();
+      },
+      
+      // Set time
+      setTime: function(inputId, time) {
+        const input = document.getElementById(inputId);
+        input.value = time;
+        
+        // Extract row ID and calculate hours if both start and end are set
+        const rowId = inputId.split('_')[1];
+        this.calculateHours(rowId);
+        this.autoSave();
+      },
+      
+      // Calculate hours between start and end times
+      calculateHours: function(rowId) {
+        const startInput = document.getElementById(`start_${rowId}`);
+        const endInput = document.getElementById(`end_${rowId}`);
+        const hoursInput = document.getElementById(`hours_${rowId}`);
+        const calculator = document.getElementById(`hoursCalc_${rowId}`);
+        
+        if (startInput.value && endInput.value) {
+          const start = new Date(`2000-01-01T${startInput.value}`);
+          const end = new Date(`2000-01-01T${endInput.value}`);
+          
+          let hours = (end - start) / (1000 * 60 * 60);
+          
+          // Handle overnight shifts
+          if (hours < 0) {
+            hours += 24;
+          }
+          
+          hoursInput.value = hours.toFixed(2);
+          calculator.textContent = `${hours.toFixed(2)} hours`;
+          
+          this.updateSummary();
+          this.autoSave();
+        } else {
+          calculator.textContent = 'Auto-calculated';
+        }
+      },
+      
+      // Update summary totals
+      updateSummary: function() {
+        let totalHours = 0;
+        let regularHours = 0;
+        let sickHours = 0;
+        let personalHours = 0;
+        let vacationHours = 0;
+        let holidayHours = 0;
+        
+        document.querySelectorAll('input[name^="hours_"]').forEach(input => {
+          const hours = parseFloat(input.value) || 0;
+          totalHours += hours;
+          
+          const rowId = input.name.split('_')[1];
+          const typeSelect = document.querySelector(`select[name="type_${rowId}"]`);
+          
+          if (typeSelect) {
+            switch (typeSelect.value) {
+              case 'Regular': regularHours += hours; break;
+              case 'Sick': sickHours += hours; break;
+              case 'Personal': personalHours += hours; break;
+              case 'Vacation': vacationHours += hours; break;
+              case 'Holiday': holidayHours += hours; break;
+            }
+          }
+        });
+        
+        document.getElementById('totalHours').textContent = totalHours.toFixed(2);
+        document.getElementById('sumRegular').textContent = regularHours.toFixed(2);
+        document.getElementById('sumSick').textContent = sickHours.toFixed(2);
+        document.getElementById('sumPersonal').textContent = personalHours.toFixed(2);
+        document.getElementById('sumVacation').textContent = vacationHours.toFixed(2);
+        document.getElementById('sumHoliday').textContent = holidayHours.toFixed(2);
+        
+        // Update progress bar (assuming 80-hour pay period)
+        const targetHours = 80;
+        const progressPercent = Math.min((totalHours / targetHours) * 100, 100);
+        const remainingHours = Math.max(targetHours - totalHours, 0);
+        
+        document.getElementById('hoursProgress').style.width = progressPercent + '%';
+        document.getElementById('hoursRemaining').textContent = remainingHours.toFixed(1);
+        
+        // Estimate gross pay (placeholder - would need actual rate)
+        const rate = parseFloat(document.getElementById('rate').value?.replace(/[^0-9.]/g, '')) || 0;
+        const grossPay = totalHours * rate;
+        document.getElementById('grossPay').textContent = '$' + grossPay.toFixed(2);
+      },
+      
+      // Add quick templates
+      addQuickTemplate: function(type) {
+        const newRow = this.createRow();
+        document.getElementById('timeBody').appendChild(newRow);
+        
+        const rowId = this.rowCounter - 1;
+        
+        // Set today's date
+        this.setToday(rowId);
+        
+        // Set template-specific values
+        const typeSelect = document.getElementById(`type_${rowId}`);
+        const startInput = document.getElementById(`start_${rowId}`);
+        const endInput = document.getElementById(`end_${rowId}`);
+        const hoursInput = document.getElementById(`hours_${rowId}`);
+        
+        switch (type) {
+          case 'split':
+            this.setTime(`start_${rowId}`, '08:00');
+            this.setTime(`end_${rowId}`, '12:00');
+            // Create second shift
+            setTimeout(() => this.splitShift(rowId), 100);
+            break;
+          case 'overtime':
+            this.setTime(`start_${rowId}`, '08:00');
+            this.setTime(`end_${rowId}`, '18:00');
+            break;
+          case 'sick':
+            typeSelect.value = 'Sick';
+            hoursInput.value = '8.00';
+            hoursInput.removeAttribute('readonly');
+            break;
+          case 'vacation':
+            typeSelect.value = 'Vacation';
+            hoursInput.value = '8.00';
+            hoursInput.removeAttribute('readonly');
+            break;
+        }
+        
+        this.updateSummary();
+        this.autoSave();
+      }
+    };
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add event listeners for auto-save
+      document.getElementById('timesheetForm').addEventListener('input', HubbTIME.autoSave);
+      document.getElementById('timesheetForm').addEventListener('change', HubbTIME.updateSummary);
+      
+      // Load draft if exists
+      const draft = localStorage.getItem('hubbtime_draft');
+      if (draft) {
+        const data = JSON.parse(draft);
+        Object.entries(data).forEach(([name, value]) => {
+          const input = document.querySelector(`[name="${name}"]`);
+          if (input) input.value = value;
+        });
+        HubbTIME.updateSummary();
+      }
+    });
+  </script>
+  
+  <script src="js/site.js" defer></script>
 </body>
 </html>
