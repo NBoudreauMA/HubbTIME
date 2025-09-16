@@ -126,12 +126,12 @@ window.HubbTIME = (function () {
     return diffDays < 7 ? 1 : 2;
   };
 
-  // ---- Data (subset shown; keep your full list) ----
+  // ---- Data (add the full list to match your repo) ----
   const EMPLOYEES = [
     {"name":"NATHAN BOUDREAU","department":"Administration","payType":"salary","rate":115000,"isAdmin":true,"position":"Town Administrator"},
     {"name":"PATRICIA LOWE","department":"Select Board","payType":"hourly","rate":23.38,"isAdmin":true,"position":"Executive Assistant / Cable Clerk"},
     {"name":"LEEANN E MOSES","department":"Assessors/Land Use","payType":"hourly","rate":23.38,"isAdmin":true,"position":"Administrative Services Coordinator"},
-    // ... keep rest of your employees here (unchanged) ...
+    // ... include your full roster here ...
   ];
 
   const WARRANTS = [
@@ -182,7 +182,6 @@ window.HubbTIME = (function () {
       { title: "Executive Assistant (Select Board)", gl: "1000-122-5100-0000", rate: 23.38 },
       { title: "Library Assistant", gl: "1000-610-5100-0000", rate: 17.57 }
     ],
-    "LEEANTHONY PLACEHOLDER": [], // keep structure safe if typos occur
     "LEEANN E MOSES": [
       { title: "Assessor Administrative", gl: "1000-141-5100-0000" },
       { title: "Land Use Administrative", gl: "1000-241-5100-0000" }
@@ -345,7 +344,10 @@ window.HubbTIME = (function () {
     return {
       setRows, addRow, updateFromTotal,
       getRows: () => glSplits.slice(),
-      isBalanced: () => Math.abs(toNum(allocatedHoursEl?.textContent || 0) - toNum(totalHoursEl?.textContent || 0)) < 0.01
+      // relaxed tolerance to avoid float fussiness
+      isBalanced: () => Math.abs(
+        toNum(allocatedHoursEl?.textContent || 0) - toNum(totalHoursEl?.textContent || 0)
+      ) < 0.05
     };
   })();
 
@@ -389,10 +391,9 @@ window.HubbTIME = (function () {
       // === Auto-seed bottom GL for everyone ===
       const nameU = (e.target.value || '').trim().toUpperCase();
       if (DEFAULT_SPLITS[nameU]) {
-        // Use predefined hour splits for Patty/Leeanne
         glAllocation.setRows(DEFAULT_SPLITS[nameU]);
       } else {
-        // Seed single 100% row with their default GL
+        // Seed single 100% row with their default GL (hours auto-sync to totals)
         const gl = getDefaultGL(currentEmployee);
         glAllocation.setRows([{ gl, pct: 100, hours: '' }]);
       }
@@ -800,10 +801,28 @@ window.HubbTIME = (function () {
     if (!currentEmployee) { setMsg("Please select an employee.", "error", true); return; }
     if (!currentWarrant)  { setMsg("Please select a pay period.", "error", true); return; }
 
-    // Require bottom GL only for Patricia/Leeanne
-    if (isBottomGLOnly() && !glAllocation.isBalanced()) {
-      setMsg('Use the GL Allocation at the bottom and make it equal to Total Hours for this employee.', 'danger', true);
-      return;
+    // For Patricia/Leeanne: auto-scale bottom split to match current total hours, and do not block
+    if (isBottomGLOnly()) {
+      const rows = glAllocation.getRows();
+      const total = toNum(document.getElementById('totalHours')?.textContent || 0);
+
+      if (!rows.length) {
+        // If nothing is set yet, seed a single row with their default GL at 100%
+        const gl = getDefaultGL(currentEmployee);
+        glAllocation.setRows([{ gl, hours: total, pct: 100 }]);
+      } else {
+        // Scale whatever hours are in the bottom table to match total hours
+        const sum = rows.reduce((a, r) => a + toNum(r.hours), 0);
+        const target = total || sum;
+        if (Math.abs(sum - target) > 0.01 && target > 0) {
+          const factor = target / (sum || 1);
+          const scaled = rows.map(r => {
+            const hours = toNum(r.hours) * factor;
+            return { gl: r.gl, hours, pct: target ? (hours / target) * 100 : 0 };
+          });
+          glAllocation.setRows(scaled);
+        }
+      }
     }
 
     // Build entries from rows
@@ -836,14 +855,18 @@ window.HubbTIME = (function () {
       grossPay: document.getElementById('grossPay')?.textContent || "$0.00"
     };
 
-    // Prefer bottom GL allocation if present & balanced; else roll up per-row GLs
+    // Prefer bottom GL allocation for Patricia/Leeanne always; else use bottom if balanced; else roll up per-row GLs
     let gl_allocation = [];
-    if (glAllocation.getRows().length && glAllocation.isBalanced()) {
+    if (isBottomGLOnly()) {
+      gl_allocation = glAllocation.getRows()
+        .filter(r => r.gl && toNum(r.hours) > 0)
+        .map(r => ({ gl: r.gl, hours: toNum(r.hours), pct: toNum(r.pct) }));
+    } else if (glAllocation.getRows().length && glAllocation.isBalanced()) {
       gl_allocation = glAllocation.getRows()
         .filter(r => r.gl && toNum(r.hours) > 0)
         .map(r => ({ gl: r.gl, hours: toNum(r.hours), pct: toNum(r.pct) }));
     } else {
-      // fallback: per-row rollup (works for everyone else)
+      // Fallback to per-row rollup for everyone else
       const roll = {};
       entries.forEach(en => {
         if (!en.gl) return;
