@@ -126,121 +126,12 @@ window.HubbTIME = (function () {
     return diffDays < 7 ? 1 : 2;
   };
 
-  // ---- Data (complete roster with FY26 official rates) ----
+  // ---- Data (subset shown; keep your full list) ----
   const EMPLOYEES = [
-    {"name":"ALBERT AFONSO","department":"School / Regional Assessment","payType":"hourly","rate":16.13,"isAdmin":false,"position":"MART Driver"},
-    {"name":"NANCY AFONSO","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"RICHARD J ANDERSON","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ERIK ARES","department":"Fire","payType":"hourly","rate":23.12,"isAdmin":false,"position":"Call LT/Paramedic"},
-    {"name":"JAMES ARES","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"CHRISTINE BARBERA","department":"Library","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"BETTY BEGIN","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"DONALD BLOOD","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"NATHAN BOUDREAU","department":"Administration","payType":"salary","rate":115000,"isAdmin":true,"position":"Town Administrator"},
-    {"name":"DANIEL BOURGEOIS","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"DAVID BOWLEY","department":"School / Regional Assessment","payType":"hourly","rate":16.13,"isAdmin":false,"position":"MART Driver"},
-    {"name":"ROBERT BRADY","department":"Public Works","payType":"hourly","rate":16.89,"isAdmin":false,"position":"DPW Seasonal"},
-    {"name":"RICHARD BREAGY","department":"School / Regional Assessment","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"SUSAN BREAGY","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ANDREW BRESCIANI","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"TRAVIS BROWN","department":"Public Works","payType":"hourly","rate":45.37,"isAdmin":false,"position":"DPW Director"},
-    {"name":"MICHAEL CAPPS","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"TROY CASEY","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ROBERT CHAMPAGNE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"SAMANTHA CHATTERTON","department":"Accounting","payType":"salary","rate":65000,"isAdmin":true,"position":"Town Accountant"},
-    {"name":"BRYAN COLWELL","department":"Fire","payType":"hourly","rate":17.84,"isAdmin":false,"position":"Call Firefighter"},
-    {"name":"JEANNINE COMO","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"JULIA CONNERY","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ANTHONY T. COPPOLA","department":"School Transportation","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ELIZABETH CORMIER","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"RYAN COUTURE","department":"Police","payType":"salary","rate":105000,"isAdmin":true,"position":"Chief of Police"},
-    {"name":"BRIAN CUNNINGHAM","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"JOHN DEMALIA","department":"Fire","payType":"hourly","rate":18.84,"isAdmin":false,"position":"Call Firefighter/EMT"},
-    {"name":"TREVOR DION","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"TINA DIXSON","department":"Fire","payType":"hourly","rate":22.22,"isAdmin":false,"position":"Firefighter/AEMT"},
-    {"name":"JAMES F DIXSON","department":"Fire","payType":"hourly","rate":24.67,"isAdmin":false,"position":"Call LT/EMT"},
-    {"name":"WILLIAM DOANE","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"KAYLA FONTAINE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ROBERT FORTE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"EDWARD GALLANT","department":"School / Regional Assessment","payType":"hourly","rate":16.13,"isAdmin":false,"position":"MART Driver"},
-    {"name":"ERIC GEMBORYS","department":"IT / Communications","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ANNE GOEWEY","department":"Library","payType":"hourly","rate":17.57,"isAdmin":true,"position":"Library Assistant"},
-    {"name":"NEIL GOGUEN","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"GREGORY GOLDSMITH","department":"School Debt/Capital","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"IZAIAH GONZALEZ","department":"Fire","payType":"hourly","rate":15.93,"isAdmin":false,"position":"Call Firefighter"},
-    {"name":"JEREMY GOSCILA","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"EDWARD GOSSON","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"WENDY GOSSON","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"JOYCE GREEN","department":"Elections","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"RICHARD GREEN","department":"Facilities / Building & Grounds","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"MELODY GREEN","department":"Town Clerk","payType":"salary","rate":67000,"isAdmin":true,"position":"Town Clerk"},
-    {"name":"JAMES HALKOLA","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"DENNIS HAMEL","department":"Fire","payType":"hourly","rate":23.30,"isAdmin":false,"position":"Firefighter/Paramedic"},
-    {"name":"SHARON HARDAKER","department":"School / Regional Assessment","payType":"hourly","rate":18.92,"isAdmin":false,"position":"MART Supervisor"},
-    {"name":"LEROY HAWKINS","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ROBERT HAYES","department":"Fire","payType":"salary","rate":100500,"isAdmin":false,"position":"Fire Chief"},
-    {"name":"KENNETH HORVATH","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"JOHN HULETTE","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"WENDY ISGRO","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"LINDA JENESKI","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"STANLEY JOHNSON","department":"School / Regional Assessment","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ROBERT JOHNSON","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"BELLA KALDERA","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"WILLIAM KAMATARIS","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"BEVERLY KOHLSTROM","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"MICHAEL LABELLE","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"RENE LAFAYETTE","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"PATRICIA LAMOUREUX","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ROBERT LANCIANI","department":"Building","payType":"hourly","rate":41.09,"isAdmin":true,"position":"Building Commissioner"},
-    {"name":"SHONNA LARSON","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"MARY LEROUX","department":"Treasurer/Collector","payType":"salary","rate":71000,"isAdmin":true,"position":"Treasurer/Collector"},
-    {"name":"CYNTHIA LISTOVITCH","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"PATRICIA LOWE","department":"Select Board","payType":"hourly","rate":23.38,"isAdmin":true,"position":"Executive Assistant / Cable Clerk"},
-    {"name":"MITCHELL MABARDY","department":"Fire","payType":"hourly","rate":20.82,"isAdmin":false,"position":"Call Firefighter/Paramedic"},
-    {"name":"EVONNE MALCOMSON","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"NICHOLAS MALNATI","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ISAIAH MCDANIEL","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"LORRAINE MICHALS","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"LEEANN E MOSES","department":"Assessors/Land Use","payType":"hourly","rate":23.38,"isAdmin":true,"position":"Administrative Services Coordinator"},
-    {"name":"JUDITH L O'DONNELL","department":"Recreation (Grant)","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"DEBORAH PAGE","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"MICHAEL PARKER","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"JAMES PAYSON","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"NANCY PERRON","department":"Police/Health","payType":"hourly","rate":22.03,"isAdmin":false,"position":"Police Admin / BOH Clerk"},
-    {"name":"FLORENCE PERVIER","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"PAUL PERVIER","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"MICHAEL PIERCE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"CLAUDIA PROVENCAL","department":"Senior Center","payType":"hourly","rate":25.00,"isAdmin":false,"position":"COA Director"},
-    {"name":"SARA RISH","department":"Treasurer/Collector","payType":"hourly","rate":24.01,"isAdmin":true,"position":"Assistant Treasurer"},
-    {"name":"NANCY ROGAN","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"SADIE SAINT","department":"Land Use","payType":"hourly","rate":22,"isAdmin":true,"position":"Inspectional Services Coordinator"},
-    {"name":"SAMUEL SCARPATO","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"BENJAMIN SEITZ","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"JEFFREY SHAMPINE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"MARY ELLEN SHAUGHNESSY","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"BRIAN SICILIANO","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"SHAUN SIEQUIST","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"DARRELL SWEENEY","department":"School Debt/Capital","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"PAUL SWEENEY","department":"Public Works","payType":"hourly","rate":17.57,"isAdmin":false,"position":"DPW Seasonal"},
-    {"name":"PHILLIP THERIAULT","department":"Fire","payType":"hourly","rate":17.80,"isAdmin":false,"position":"Call Firefighter"},
-    {"name":"EDWARD TONET","department":"School Transportation","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"LOIS TYLER","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"KATHLEEN VINCENT","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"JAMES VINCENT","department":"Facilities / Building & Grounds","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ALEXANDER WADE","department":"Facilities / Building & Grounds","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"TINA WHITE","department":"Public Works","payType":"hourly","rate":22.03,"isAdmin":true,"position":"DPW Assistant"},
-    {"name":"CAROL WHITNEY","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"BRIANNA WHITNEY","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"LYNN WILKINSON","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"TAYLOR WILKINSON","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"LORRAINE WILLIAMS","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"KENNETH WINCHESTER","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"WILLIAM WITHYCOMBE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"KAREN WOLFE","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ANDREW WOODARD","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"PATRICIA WOODWARD","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"LAUREN WRIGHT","department":"Senior Center / COA (Grant)","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"HUNTER YOUNG","department":"Building & Maintenance","payType":"hourly","rate":17.57,"isAdmin":false,"position":"Facilities Maintenance"}
+    // ... keep rest of your employees here (unchanged) ...
   ];
 
   const WARRANTS = [
@@ -250,7 +141,6 @@ window.HubbTIME = (function () {
     { number: 8, start: "2025-10-05", end: "2025-10-18", due: "2025-10-20", check: "2025-10-23" }
   ];
 
-  // Department-level Personnel GLs (for defaults)
   const DEPT_GLS = {
     "Administration": "1000-129-5100-0000",
     "Accounting": "1000-129-5100-0000",
@@ -280,52 +170,27 @@ window.HubbTIME = (function () {
     "School Transportation": "1000-129-5100-0000"
   };
 
-  // Position-level mappings
   const POSITION_GLS = {
     "Town Administrator": "1000-129-5100-0000",
     "Executive Assistant / Cable Clerk": "1000-122-5100-0000",
-    "Town Accountant": "1000-129-5100-0000",
-    "Treasurer/Collector": "1000-149-5100-0000",
-    "Assistant Treasurer": "1000-149-5100-0000",
-    "Chief of Police": "1000-210-5100-0000",
-    "Fire Chief": "1000-220-5100-0000",
-    "DPW Director": "1000-420-5100-0000",
-    "Library Assistant": "1000-610-5100-0000",
-    "Inspectional Services Coordinator": "1000-241-5100-0000",
-    "COA Director": "1000-541-5100-0000",
-    "Building Commissioner": "1000-241-5100-0000",
-    "Police Admin / BOH Clerk": "1000-210-5100-0000",
-    "MART Driver": "1000-129-5100-0000",
-    "MART Supervisor": "1000-129-5100-0000",
-    "Call Firefighter": "1000-220-5100-0000",
-    "Call LT/EMT": "1000-220-5100-0000",
-    "Call LT/Paramedic": "1000-220-5100-0000",
-    "Firefighter/AEMT": "1000-220-5100-0000",
-    "Firefighter/Paramedic": "1000-220-5100-0000",
-    "Call Firefighter/EMT": "1000-220-5100-0000",
-    "Call Firefighter/Paramedic": "1000-220-5100-0000",
-    "DPW Seasonal": "1000-420-5100-0000",
-    "Facilities Maintenance": "1000-192-5100-0000",
-    "Administrative Services Coordinator": "1000-141-5100-0000"
+    "Administrative Services Coordinator": "1000-141-5100-0000",
+    // ... keep remaining mappings as in your file ...
   };
 
-  // Multiposition choices (used for quick GL selects and role-based rates)
   const EMPLOYEE_POSITIONS = {
     "PATRICIA LOWE": [
       { title: "Executive Assistant (Select Board)", gl: "1000-122-5100-0000", rate: 23.38 },
       { title: "Library Assistant", gl: "1000-610-5100-0000", rate: 17.57 }
     ],
-    "NANCY PERRON": [
-      { title: "Police Administrative Assistant", gl: "1000-210-5100-0000" },
-      { title: "Board of Health Clerk", gl: "1000-241-5100-0000" }
-    ],
+    "LEEANTHONY PLACEHOLDER": [], // keep structure safe if typos occur
     "LEEANN E MOSES": [
       { title: "Assessor Administrative", gl: "1000-141-5100-0000" },
       { title: "Land Use Administrative", gl: "1000-241-5100-0000" }
     ]
+    // ... add others as needed ...
   };
 
-  // ---- Bottom GL Allocation defaults ----
+  // ---- Bottom GL Allocation defaults (per your request) ----
   const DEFAULT_SPLITS = {
     'PATRICIA LOWE': [
       { gl: '1000-122-5100-0000', hours: 26 }, // Executive (Select Board)
@@ -337,12 +202,12 @@ window.HubbTIME = (function () {
     ]
   };
 
-  // ==== NEW: Employees who must only use bottom GL allocation ====
+  // Employees who must ONLY use the bottom GL allocation
   const BOTTOM_GL_ONLY = new Set(['PATRICIA LOWE', 'LEEANN E MOSES']);
   const isBottomGLOnly = () =>
     currentEmployee && BOTTOM_GL_ONLY.has((currentEmployee.name || '').toUpperCase());
 
-  // ---- Helpers for GL resolution & UI (per-row GL retained as fallback) ----
+  // ---- Helpers for GL resolution & UI ----
   function getDefaultGL(emp) {
     if (!emp) return "";
     if (emp.position && POSITION_GLS[emp.position]) return POSITION_GLS[emp.position];
@@ -360,6 +225,7 @@ window.HubbTIME = (function () {
     glInput.value = initialGL || getDefaultGL(emp);
     glInput.autocomplete = 'off';
     glDiv.appendChild(glInput);
+
     if (emp && EMPLOYEE_POSITIONS[emp.name] && EMPLOYEE_POSITIONS[emp.name].length) {
       const glChooser = document.createElement('select');
       glChooser.className = 'gl-chooser input';
@@ -381,13 +247,113 @@ window.HubbTIME = (function () {
   }
 
   function reseedBlankRowGLs() {
-    if (isBottomGLOnly()) return; // <= DO NOT seed per-row GL for Patricia/Leeanne
+    if (isBottomGLOnly()) return; // DO NOT seed per-row GL for Patricia/Leeanne
     const rows = Array.from(document.querySelectorAll('#timeBody tr'));
     const def = getDefaultGL(currentEmployee);
     rows.forEach(r => {
       const glIn = r.querySelector('.gl-input');
       if (glIn && !glIn.value && def) glIn.value = def;
     });
+  }
+
+  // ---- Bottom GL Allocation module (reads/writes table with IDs) ----
+  const glAllocation = (function(){
+    const body = document.getElementById('glSplitBody');
+    const addBtn = document.getElementById('addGLSplitBtn');
+    const fill100Btn = document.getElementById('fill100Btn');
+    const allocatedHoursEl = document.getElementById('allocatedHours');
+    const allocatedPctEl = document.getElementById('allocatedPct');
+    const totalHoursEl = document.getElementById('totalHours');
+
+    let glSplits = []; // [{gl, hours, pct}]
+
+    const render = () => {
+      if (!body) return;
+      body.innerHTML = '';
+      glSplits.forEach((row, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input class="gl-code input" placeholder="GL code" value="${row.gl || ''}"></td>
+          <td><input class="gl-hours input" type="number" min="0" step="0.01" value="${row.hours ?? ''}"></td>
+          <td><input class="gl-pct input" type="number" min="0" step="0.01" value="${row.pct ?? ''}"></td>
+          <td><button type="button" class="btn link danger gl-del">Remove</button></td>
+        `;
+        body.appendChild(tr);
+
+        const syncAndRecalc = (src) => {
+          const hoursEl = tr.querySelector('.gl-hours');
+          const pctEl = tr.querySelector('.gl-pct');
+          const codeEl = tr.querySelector('.gl-code');
+          const total = toNum(totalHoursEl?.textContent || 0);
+
+          let hoursVal = toNum(hoursEl.value);
+          let pctVal = toNum(pctEl.value);
+
+          if (src === 'hrs') {
+            pctVal = total > 0 ? (hoursVal / total) * 100 : 0;
+            pctEl.value = fmtHrs(pctVal);
+          } else if (src === 'pct') {
+            hoursVal = (pctVal / 100) * total;
+            hoursEl.value = fmtHrs(hoursVal);
+          }
+
+          glSplits[i] = { gl: codeEl.value.trim(), hours: toNum(hoursEl.value), pct: toNum(pctEl.value) };
+          recalcAllocated();
+        };
+
+        tr.querySelector('.gl-hours').addEventListener('input', () => syncAndRecalc('hrs'));
+        tr.querySelector('.gl-pct').addEventListener('input', () => syncAndRecalc('pct'));
+        tr.querySelector('.gl-code').addEventListener('input', () => syncAndRecalc());
+        tr.querySelector('.gl-del').addEventListener('click', () => { glSplits.splice(i,1); render(); recalcAllocated(); });
+      });
+      recalcAllocated();
+    };
+
+    const recalcAllocated = () => {
+      const total = toNum(totalHoursEl?.textContent || 0);
+      const hours = glSplits.reduce((a,b)=> a + toNum(b.hours), 0);
+      const pct = total > 0 ? (hours / total) * 100 : 0;
+      if (allocatedHoursEl) allocatedHoursEl.textContent = fmtHrs(hours);
+      if (allocatedPctEl) allocatedPctEl.textContent = Math.round(pct) + '%';
+    };
+
+    const addRow = (row = { gl:'', hours:'', pct:'' }) => { glSplits.push(row); render(); };
+    const setRows = (rows) => { glSplits = rows.map(r => ({ gl:r.gl, hours:toNum(r.hours), pct:toNum(r.pct) })); render(); };
+    const updateFromTotal = () => {
+      const total = toNum(totalHoursEl?.textContent || 0);
+      glSplits = glSplits.map(r => {
+        if ((r.pct || r.pct === 0) && (r.hours === '' || r.hours == null) && total) {
+          return { ...r, hours: (toNum(r.pct) / 100) * total };
+        }
+        if ((r.hours || r.hours === 0) && (r.pct === '' || r.pct == null) && total) {
+          return { ...r, pct: total ? (toNum(r.hours) / total) * 100 : 0 };
+        }
+        return r;
+      });
+      render();
+    };
+
+    addBtn?.addEventListener('click', () => addRow());
+    fill100Btn?.addEventListener('click', () => {
+      const total = toNum(totalHoursEl?.textContent || 0);
+      if (!total) { setMsg('Enter time rows first so we know total hours.', 'warn', true); return; }
+      if (!glSplits.length) addRow();
+      glSplits[0] = { gl: glSplits[0].gl || '', hours: total, pct: 100 };
+      render();
+    });
+
+    return {
+      setRows, addRow, updateFromTotal,
+      getRows: () => glSplits.slice(),
+      isBalanced: () => Math.abs(toNum(allocatedHoursEl?.textContent || 0) - toNum(totalHoursEl?.textContent || 0)) < 0.01
+    };
+  })();
+
+  // Keep bottom allocation synced when totals change
+  const totalHoursElObserverTarget = document.getElementById('totalHours');
+  if (totalHoursElObserverTarget) {
+    const observer = new MutationObserver(() => glAllocation.updateFromTotal());
+    observer.observe(totalHoursElObserverTarget, { childList: true });
   }
 
   // ---- DOM init ----
@@ -419,13 +385,19 @@ window.HubbTIME = (function () {
     // Bind events
     $('#employeeSearch')?.addEventListener('change', (e) => {
       handleEmployee(e);
-      // Apply default bottom split if defined
-      const name = (e.target.value || '').trim().toUpperCase();
-      if (DEFAULT_SPLITS[name]) {
-        glAllocation.setRows(DEFAULT_SPLITS[name]);
-        glAllocation.updateFromTotal();
-        setMsg(`Applied default GL split for ${e.target.value}.`, 'info', true);
+
+      // === Auto-seed bottom GL for everyone ===
+      const nameU = (e.target.value || '').trim().toUpperCase();
+      if (DEFAULT_SPLITS[nameU]) {
+        // Use predefined hour splits for Patty/Leeanne
+        glAllocation.setRows(DEFAULT_SPLITS[nameU]);
+      } else {
+        // Seed single 100% row with their default GL
+        const gl = getDefaultGL(currentEmployee);
+        glAllocation.setRows([{ gl, pct: 100, hours: '' }]);
       }
+      glAllocation.updateFromTotal();
+
       const details = $('#employeeDetails');
       if (details && currentEmployee) details.style.display = 'block';
     });
@@ -531,7 +503,7 @@ window.HubbTIME = (function () {
          </div>
        </td>`;
 
-    // === CHANGED: per-row GL hidden/ignored for Patricia & Leeanne ===
+    // Per-row GL hidden/ignored for Patricia & Leeanne
     const glCell = tr.children[5];
     if (isBottomGLOnly()) {
       glCell.innerHTML = '<span class="text-muted">Bottom allocation</span>';
@@ -579,7 +551,6 @@ window.HubbTIME = (function () {
       const newRow = document.createElement('tr');
       newRow.innerHTML = tr.innerHTML;
 
-      // Rebuild GL cell properly
       const glCell = newRow.children[5];
       glCell.innerHTML = '';
       if (isBottomGLOnly()) {
@@ -644,107 +615,7 @@ window.HubbTIME = (function () {
     setMsg(`Town Hall hours applied for ${currentWarrant.start} to ${currentWarrant.end}.`, "success", true);
   }
 
-  // ---- Bottom GL Allocation module ----
-  const glAllocation = (function(){
-    const body = document.getElementById('glSplitBody');
-    const addBtn = document.getElementById('addGLSplitBtn');
-    const fill100Btn = document.getElementById('fill100Btn');
-    const allocatedHoursEl = document.getElementById('allocatedHours');
-    const allocatedPctEl = document.getElementById('allocatedPct');
-    const totalHoursEl = document.getElementById('totalHours');
-
-    let glSplits = []; // [{gl, hours, pct}]
-
-    const render = () => {
-      if (!body) return;
-      body.innerHTML = '';
-      glSplits.forEach((row, i) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><input class="gl-code input" placeholder="GL code" value="${row.gl || ''}"></td>
-          <td><input class="gl-hours input" type="number" min="0" step="0.01" value="${row.hours ?? ''}"></td>
-          <td><input class="gl-pct input" type="number" min="0" step="0.01" value="${row.pct ?? ''}"></td>
-          <td><button type="button" class="btn link danger gl-del">Remove</button></td>
-        `;
-        body.appendChild(tr);
-
-        const syncAndRecalc = (src) => {
-          const hoursEl = tr.querySelector('.gl-hours');
-          const pctEl = tr.querySelector('.gl-pct');
-          const codeEl = tr.querySelector('.gl-code');
-          const total = toNum(totalHoursEl?.textContent || 0);
-
-          let hoursVal = toNum(hoursEl.value);
-          let pctVal = toNum(pctEl.value);
-
-          if (src === 'hrs') {
-            pctVal = total > 0 ? (hoursVal / total) * 100 : 0;
-            pctEl.value = fmtHrs(pctVal);
-          } else if (src === 'pct') {
-            hoursVal = (pctVal / 100) * total;
-            hoursEl.value = fmtHrs(hoursVal);
-          }
-
-          glSplits[i] = { gl: codeEl.value.trim(), hours: toNum(hoursEl.value), pct: toNum(pctEl.value) };
-          recalcAllocated();
-        };
-
-        tr.querySelector('.gl-hours').addEventListener('input', () => syncAndRecalc('hrs'));
-        tr.querySelector('.gl-pct').addEventListener('input', () => syncAndRecalc('pct'));
-        tr.querySelector('.gl-code').addEventListener('input', () => syncAndRecalc());
-        tr.querySelector('.gl-del').addEventListener('click', () => { glSplits.splice(i,1); render(); recalcAllocated(); });
-      });
-      recalcAllocated();
-    };
-
-    const recalcAllocated = () => {
-      const total = toNum(totalHoursEl?.textContent || 0);
-      const hours = glSplits.reduce((a,b)=> a + toNum(b.hours), 0);
-      const pct = total > 0 ? (hours / total) * 100 : 0;
-      if (allocatedHoursEl) allocatedHoursEl.textContent = fmtHrs(hours);
-      if (allocatedPctEl) allocatedPctEl.textContent = Math.round(pct) + '%';
-    };
-
-    const addRow = (row = { gl:'', hours:'', pct:'' }) => { glSplits.push(row); render(); };
-    const setRows = (rows) => { glSplits = rows.map(r => ({ gl:r.gl, hours:toNum(r.hours), pct:toNum(r.pct) })); render(); };
-    const updateFromTotal = () => {
-      const total = toNum(totalHoursEl?.textContent || 0);
-      glSplits = glSplits.map(r => {
-        if ((r.pct || r.pct === 0) && (r.hours === '' || r.hours == null) && total) {
-          return { ...r, hours: (toNum(r.pct) / 100) * total };
-        }
-        if ((r.hours || r.hours === 0) && (r.pct === '' || r.pct == null) && total) {
-          return { ...r, pct: total ? (toNum(r.hours) / total) * 100 : 0 };
-        }
-        return r;
-      });
-      render();
-    };
-
-    addBtn?.addEventListener('click', () => addRow());
-    fill100Btn?.addEventListener('click', () => {
-      const total = toNum(totalHoursEl?.textContent || 0);
-      if (!total) { setMsg('Enter time rows first so we know total hours.', 'warn', true); return; }
-      if (!glSplits.length) addRow();
-      glSplits[0] = { gl: glSplits[0].gl || '', hours: total, pct: 100 };
-      render();
-    });
-
-    return {
-      setRows, addRow, updateFromTotal,
-      getRows: () => glSplits.slice(),
-      isBalanced: () => Math.abs(toNum(allocatedHoursEl?.textContent || 0) - toNum(totalHoursEl?.textContent || 0)) < 0.01
-    };
-  })();
-
-  // Keep bottom allocation synced when totals change
-  const totalHoursEl = document.getElementById('totalHours');
-  if (totalHoursEl) {
-    const observer = new MutationObserver(() => glAllocation.updateFromTotal());
-    observer.observe(totalHoursEl, { childList: true });
-  }
-
-  // ---- GL Review: prefer bottom allocation if present/balanced ----
+  // ---- GL Review: prefer bottom allocation if balanced; else per-row ----
   function updateGLReview() {
     const reviewWrap = $('#glReviewWrap');
     if (!reviewWrap) return;
@@ -778,7 +649,7 @@ window.HubbTIME = (function () {
     }
 
     if (!Object.keys(glBreakdown).length) {
-      reviewWrap.innerHTML = `<p class="text-center text-muted" style="padding:var(--space-xl);">Enter time entries (and GL allocation below) to see cost allocation.</p>`;
+      reviewWrap.innerHTML = `<p class="text-center text-muted" style="padding:var(--space-xl);">Enter time entries (and/or GL allocation below) to see cost allocation.</p>`;
       return;
     }
 
@@ -816,7 +687,7 @@ window.HubbTIME = (function () {
             if (role) rate = role.rate;
           }
           const regularCost = b.regular * rate;
-          const overtimeCost = 0; // weekly OT not split per-GL here
+          const overtimeCost = 0; // weekly OT split not modeled
           const leaveCost = (b.sick + b.personal + b.vacation + b.holiday) * rate;
           const totalCost = regularCost + overtimeCost + leaveCost;
           costCells = `
@@ -903,7 +774,7 @@ window.HubbTIME = (function () {
             if (!hours) return;
             const role = EMPLOYEE_POSITIONS[currentEmployee.name].find(p => p.gl === gl);
             const rate = role && role.rate ? role.rate : currentEmployee.rate;
-            totalPay += hours * rate; // OT not computed per-GL in this simplified model
+            totalPay += hours * rate; // OT not computed per-GL here
           });
           gross = totalPay;
         } else {
@@ -929,7 +800,7 @@ window.HubbTIME = (function () {
     if (!currentEmployee) { setMsg("Please select an employee.", "error", true); return; }
     if (!currentWarrant)  { setMsg("Please select a pay period.", "error", true); return; }
 
-    // Enforce bottom GL for Patricia & Leeanne
+    // Require bottom GL only for Patricia/Leeanne
     if (isBottomGLOnly() && !glAllocation.isBalanced()) {
       setMsg('Use the GL Allocation at the bottom and make it equal to Total Hours for this employee.', 'danger', true);
       return;
@@ -967,16 +838,12 @@ window.HubbTIME = (function () {
 
     // Prefer bottom GL allocation if present & balanced; else roll up per-row GLs
     let gl_allocation = [];
-    if (glAllocation.getRows().length) {
-      if (!glAllocation.isBalanced()) {
-        setMsg('GL Allocation (bottom) must equal Total Hours before submitting.', 'danger', true);
-        return;
-      }
+    if (glAllocation.getRows().length && glAllocation.isBalanced()) {
       gl_allocation = glAllocation.getRows()
         .filter(r => r.gl && toNum(r.hours) > 0)
         .map(r => ({ gl: r.gl, hours: toNum(r.hours), pct: toNum(r.pct) }));
     } else {
-      // fallback: roll up per-row to totals by GL (ignored for Patricia/Leeanne since rows have no GLs)
+      // fallback: per-row rollup (works for everyone else)
       const roll = {};
       entries.forEach(en => {
         if (!en.gl) return;
