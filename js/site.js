@@ -5,7 +5,7 @@
    - Quick search for module cards
    - Theme toggle (persisted)
    ========================================================= */
-window.HubbTIME = (function (prev) {
+(function () {
   'use strict';
 
   // Mobile nav
@@ -83,7 +83,7 @@ window.HubbTIME = (function () {
   'use strict';
 
   const container = document.getElementById('hubbtimeContainer');
-  const api = { addTownHallHours: () => {} };
+  const api = {};
   if (!container) return api;
 
   // ---- Config ----
@@ -120,7 +120,25 @@ window.HubbTIME = (function () {
     return diffDays < 7 ? 1 : 2;
   };
 
-  // ---- Data (complete roster you provided) ----
+  // ---- Helper functions for supplemental actions ----
+  const hhmmToMin = (hhmm) => {
+    if (!hhmm) return null;
+    const [h, m] = hhmm.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const minToHHMM = (mins) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  };
+
+  const getLastRow = () => {
+    const tbody = document.getElementById('timeBody');
+    return tbody ? tbody.lastElementChild : null;
+  };
+
+  // ---- Data (complete roster with FY26 official rates) ----
   const EMPLOYEES = [
     {"name":"ALBERT AFONSO","department":"School / Regional Assessment","payType":"hourly","rate":16.13,"isAdmin":false,"position":"MART Driver"},
     {"name":"NANCY AFONSO","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
@@ -137,11 +155,11 @@ window.HubbTIME = (function () {
     {"name":"RICHARD BREAGY","department":"School / Regional Assessment","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"SUSAN BREAGY","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"ANDREW BRESCIANI","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"TRAVIS BROWN","department":"Public Works","payType":"salary","rate":94369,"isAdmin":false,"position":"DPW Director"},
+    {"name":"TRAVIS BROWN","department":"Public Works","payType":"hourly","rate":45.37,"isAdmin":false,"position":"DPW Director"},
     {"name":"MICHAEL CAPPS","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"TROY CASEY","department":"Fire","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"ROBERT CHAMPAGNE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"SAMANTHA CHATTERTON","department":"Accounting","payType":"salary","rate":33800,"isAdmin":true,"position":"Town Accountant"},
+    {"name":"SAMANTHA CHATTERTON","department":"Accounting","payType":"salary","rate":65000,"isAdmin":true,"position":"Town Accountant"},
     {"name":"BRYAN COLWELL","department":"Fire","payType":"hourly","rate":17.84,"isAdmin":false,"position":"Call Firefighter"},
     {"name":"JEANNINE COMO","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"JULIA CONNERY","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
@@ -167,7 +185,7 @@ window.HubbTIME = (function () {
     {"name":"WENDY GOSSON","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"JOYCE GREEN","department":"Elections","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"RICHARD GREEN","department":"Facilities / Building & Grounds","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"MELODY GREEN","department":"Town Clerk","payType":"salary","rate":56610,"isAdmin":true,"position":"Town Clerk"},
+    {"name":"MELODY GREEN","department":"Town Clerk","payType":"salary","rate":67000,"isAdmin":true,"position":"Town Clerk"},
     {"name":"JAMES HALKOLA","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"DENNIS HAMEL","department":"Fire","payType":"hourly","rate":23.30,"isAdmin":false,"position":"Firefighter/Paramedic"},
     {"name":"SHARON HARDAKER","department":"School / Regional Assessment","payType":"hourly","rate":18.92,"isAdmin":false,"position":"MART Supervisor"},
@@ -185,9 +203,9 @@ window.HubbTIME = (function () {
     {"name":"MICHAEL LABELLE","department":"Public Works","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"RENE LAFAYETTE","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
     {"name":"PATRICIA LAMOUREUX","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"ROBERT LANCIANI","department":"Building","payType":"salary","rate":42734,"isAdmin":true,"position":"Building Commissioner"},
+    {"name":"ROBERT LANCIANI","department":"Building","payType":"hourly","rate":41.09,"isAdmin":true,"position":"Building Commissioner"},
     {"name":"SHONNA LARSON","department":"Town Clerk","payType":"hourly","rate":null,"isAdmin":true,"position":null},
-    {"name":"MARY LEROUX","department":"Treasurer/Collector","payType":"salary","rate":70914,"isAdmin":true,"position":"Treasurer/Collector"},
+    {"name":"MARY LEROUX","department":"Treasurer/Collector","payType":"salary","rate":71000,"isAdmin":true,"position":"Treasurer/Collector"},
     {"name":"CYNTHIA LISTOVITCH","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"PATRICIA LOWE","department":"Select Board","payType":"hourly","rate":23.38,"isAdmin":true,"position":"Executive Assistant / Cable Clerk"},
     {"name":"MITCHELL MABARDY","department":"Fire","payType":"hourly","rate":20.82,"isAdmin":false,"position":"Call Firefighter/Paramedic"},
@@ -204,7 +222,7 @@ window.HubbTIME = (function () {
     {"name":"FLORENCE PERVIER","department":"Cable / PEG Access","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"PAUL PERVIER","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"MICHAEL PIERCE","department":"Police","payType":"hourly","rate":null,"isAdmin":false,"position":null},
-    {"name":"CLAUDIA PROVENCAL","department":"Senior Center","payType":"hourly","rate":25,"isAdmin":false,"position":"COA Director"},
+    {"name":"CLAUDIA PROVENCAL","department":"Senior Center","payType":"hourly","rate":25.00,"isAdmin":false,"position":"COA Director"},
     {"name":"SARA RISH","department":"Treasurer/Collector","payType":"hourly","rate":24.01,"isAdmin":true,"position":"Assistant Treasurer"},
     {"name":"NANCY ROGAN","department":"Senior Center / COA","payType":"hourly","rate":null,"isAdmin":false,"position":null},
     {"name":"SADIE SAINT","department":"Land Use","payType":"hourly","rate":22,"isAdmin":true,"position":"Inspectional Services Coordinator"},
@@ -246,91 +264,211 @@ window.HubbTIME = (function () {
 
   /* =========================================================
      Personnel GL Directory + Helpers
-     ---------------------------------------------------------
-     Auto-fill order:
-       1) EMPLOYEE_GLS[name] (if set)
-       2) POSITION_GLS[position]
-       3) DEPT_GLS[department]
-     Multi-position staff can expose a row chooser via EMPLOYEE_POSITIONS.
      ========================================================= */
 
-  // Department-level Personnel GLs (fill with your authoritative set)
+  // All Municipal Personnel GL Accounts (searchable)
+  const ALL_PERSONNEL_GLS = [
+    // General Government
+    { code: "01-5100-5110", desc: "Town Administrator" },
+    { code: "01-5100-5120", desc: "Town Accountant" },
+    { code: "01-5100-5130", desc: "Treasurer/Collector" },
+    { code: "01-5100-5140", desc: "Select Board" },
+    { code: "01-5100-5150", desc: "Town Clerk" },
+    { code: "01-5100-5160", desc: "Assessors/Land Use" },
+    { code: "01-5100-5170", desc: "Facilities / Building & Grounds" },
+    { code: "01-5100-5180", desc: "Technology/IT" },
+    { code: "01-5100-5190", desc: "General Administration" },
+    
+    // Communications
+    { code: "01-1550-5100", desc: "IT / Communications" },
+    { code: "01-1551-5100", desc: "Cable / PEG Access" },
+    
+    // Elections
+    { code: "01-162A-5100", desc: "Elections" },
+    
+    // Public Safety - Police
+    { code: "01-2100-5100", desc: "Police Department" },
+    { code: "01-2100-5110", desc: "Police Chief" },
+    { code: "01-2100-5120", desc: "Police Officers" },
+    { code: "01-2100-5130", desc: "Police Administrative" },
+    { code: "01-2100-5140", desc: "Police Overtime" },
+    { code: "01-2100-5150", desc: "Police Details" },
+    
+    // Public Safety - Fire
+    { code: "01-2200-5100", desc: "Fire Department" },
+    { code: "01-2200-5110", desc: "Fire Chief" },
+    { code: "01-2200-5120", desc: "Full-Time Firefighters" },
+    { code: "01-2200-5130", desc: "Call Firefighters" },
+    { code: "01-2200-5140", desc: "Fire Overtime" },
+    { code: "01-2200-5150", desc: "EMT/Paramedic" },
+    
+    // Building & Inspections
+    { code: "01-2410-5100", desc: "Building Commissioner" },
+    { code: "01-2410-5110", desc: "Building Inspector" },
+    { code: "01-2410-5120", desc: "Plumbing Inspector" },
+    { code: "01-2410-5130", desc: "Electrical Inspector" },
+    { code: "01-2410-5140", desc: "Gas Inspector" },
+    
+    // Education (Regional Assessment)
+    { code: "01-3000-5100", desc: "School / Regional Assessment" },
+    { code: "01-3001-5100", desc: "School Debt/Capital" },
+    { code: "01-3002-5100", desc: "School Transportation" },
+    
+    // Public Works
+    { code: "01-4200-5100", desc: "Public Works Department" },
+    { code: "01-4200-5110", desc: "DPW Director" },
+    { code: "01-4200-5120", desc: "DPW Workers" },
+    { code: "01-4200-5130", desc: "DPW Seasonal" },
+    { code: "01-4200-5140", desc: "DPW Administrative" },
+    { code: "01-4200-5150", desc: "DPW Overtime" },
+    
+    // Highway Department
+    { code: "01-4220-5100", desc: "Highway Department" },
+    { code: "01-4220-5110", desc: "Highway Superintendent" },
+    { code: "01-4220-5120", desc: "Highway Workers" },
+    { code: "01-4220-5130", desc: "Highway Overtime" },
+    
+    // Snow & Ice
+    { code: "01-4230-5100", desc: "Snow & Ice Removal" },
+    { code: "01-4230-5110", desc: "Snow Overtime" },
+    { code: "01-4230-5120", desc: "Snow Contractors" },
+    
+    // Transfer Station
+    { code: "01-4330-5100", desc: "Transfer Station" },
+    { code: "01-4330-5110", desc: "Transfer Station Attendant" },
+    
+    // Board of Health
+    { code: "01-5120-5100", desc: "Board of Health" },
+    { code: "01-5120-5110", desc: "Health Agent" },
+    { code: "01-5120-5120", desc: "Health Inspector" },
+    { code: "01-5120-5130", desc: "Health Administrative" },
+    
+    // Council on Aging
+    { code: "01-5410-5100", desc: "Senior Center / COA" },
+    { code: "01-5410-5110", desc: "COA Director" },
+    { code: "01-5410-5120", desc: "COA Coordinator" },
+    { code: "01-5410-5130", desc: "COA Driver" },
+    { code: "01-5411-5100", desc: "Senior Center / COA (Grant)" },
+    
+    // Veterans Services
+    { code: "01-5430-5100", desc: "Veterans Services" },
+    { code: "01-5430-5110", desc: "Veterans Agent" },
+    
+    // Library
+    { code: "01-6100-5100", desc: "Library" },
+    { code: "01-6100-5110", desc: "Library Director" },
+    { code: "01-6100-5120", desc: "Library Assistant" },
+    { code: "01-6100-5130", desc: "Library Aide" },
+    
+    // Recreation
+    { code: "01-6300-5100", desc: "Recreation" },
+    { code: "01-6301-5100", desc: "Recreation (Grant)" },
+    { code: "01-6300-5110", desc: "Recreation Director" },
+    { code: "01-6300-5120", desc: "Recreation Coordinator" },
+    
+    // Cemetery
+    { code: "01-4950-5100", desc: "Cemetery" },
+    { code: "01-4950-5110", desc: "Cemetery Superintendent" },
+    { code: "01-4950-5120", desc: "Cemetery Workers" },
+    
+    // Conservation
+    { code: "01-1710-5100", desc: "Conservation Commission" },
+    { code: "01-1710-5110", desc: "Conservation Agent" },
+    
+    // Planning Board
+    { code: "01-1750-5100", desc: "Planning Board" },
+    { code: "01-1750-5110", desc: "Town Planner" },
+    
+    // Zoning Board
+    { code: "01-1760-5100", desc: "Zoning Board of Appeals" },
+    
+    // Historical Commission
+    { code: "01-6920-5100", desc: "Historical Commission" },
+    
+    // Economic Development
+    { code: "01-6950-5100", desc: "Economic Development" },
+    
+    // Emergency Management
+    { code: "01-2920-5100", desc: "Emergency Management" },
+    { code: "01-2920-5110", desc: "Emergency Management Director" }
+  ];
+
+  // Department-level Personnel GLs (for defaults) - Updated with actual Town codes
   const DEPT_GLS = {
-    "Administration": "01-5100-5110",
-    "Accounting": "01-5100-5120",
-    "Treasurer/Collector": "01-5100-5130",
-    "Select Board": "01-5100-5140",
-    "Town Clerk": "01-5100-5150",
-    "Assessors/Land Use": "01-5100-5160",
-    "Land Use": "01-5100-5160",
-    "Facilities / Building & Grounds": "01-5100-5170",
-    "Building & Maintenance": "01-5100-5170",
-
-    "IT / Communications": "01-1550-5100",
-    "IT/Communications": "01-1550-5100",
-    "Cable / PEG Access": "01-1551-5100",
-    "Elections": "01-162A-5100",
-
-    "Public Works": "01-4200-5100",
-    "Police": "01-2100-5100",
-    "Police/Health": "01-2100-5100",
-    "Fire": "01-2200-5100",
-    "Building": "01-2410-5100",
-
-    "Library": "01-6100-5100",
-    "Recreation (Grant)": "01-6301-5100",
-
-    "Senior Center / COA": "01-5410-5100",
-    "Senior Center": "01-5410-5100",
-    "Senior Center / COA (Grant)": "01-5411-5100",
-
-    "School / Regional Assessment": "01-3000-5100",
-    "School Debt/Capital": "01-3001-5100",
-    "School Transportation": "01-3002-5100"
+    "Administration": "1000-129-5100-0000",
+    "Accounting": "1000-129-5100-0000",
+    "Treasurer/Collector": "1000-149-5100-0000",
+    "Select Board": "1000-122-5100-0000",
+    "Town Clerk": "1000-161-5100-0000",
+    "Assessors/Land Use": "1000-141-5100-0000",
+    "Land Use": "1000-241-5100-0000",
+    "Facilities / Building & Grounds": "1000-192-5100-0000",
+    "Building & Maintenance": "1000-192-5100-0000",
+    "IT / Communications": "1000-129-5100-0000",
+    "IT/Communications": "1000-129-5100-0000",
+    "Cable / PEG Access": "1000-129-5100-0000",
+    "Elections": "1000-161-5100-0000",
+    "Public Works": "1000-420-5100-0000",
+    "Police": "1000-210-5100-0000",
+    "Police/Health": "1000-210-5100-0000",
+    "Fire": "1000-220-5100-0000",
+    "Building": "1000-241-5100-0000",
+    "Library": "1000-610-5100-0000",
+    "Recreation (Grant)": "1000-129-5100-0000",
+    "Senior Center / COA": "1000-541-5100-0000",
+    "Senior Center": "1000-541-5100-0000",
+    "Senior Center / COA (Grant)": "1000-541-5100-0000",
+    "School / Regional Assessment": "1000-129-5100-0000",
+    "School Debt/Capital": "1000-129-5100-0000",
+    "School Transportation": "1000-129-5100-0000"
   };
 
-  // Position-level mappings (optional; include where you have a specific GL)
+  // Position-level mappings - Updated with actual Town 
   const POSITION_GLS = {
-    "Town Administrator": "01-5100-5110",
-    "Executive Assistant / Cable Clerk": "01-5100-5140",
-    "Town Accountant": "01-5100-5120",
-    "Treasurer/Collector": "01-5100-5130",
-    "Assistant Treasurer": "01-5100-5130",
-    "Chief of Police": "01-2100-5100",
-    "Fire Chief": "01-2200-5100",
-    "DPW Director": "01-4200-5100",
-    "Library Assistant": "01-6100-5100",
-    "Inspectional Services Coordinator": "01-5100-5160",
-    "COA Director": "01-5410-5100",
-    "Building Commissioner": "01-2410-5100",
-    "Police Admin / BOH Clerk": "01-2100-5100",
-    "MART Driver": "01-3002-5100",
-    "MART Supervisor": "01-3002-5100",
-    "Call Firefighter": "01-2200-5100",
-    "Call LT/EMT": "01-2200-5100",
-    "Call LT/Paramedic": "01-2200-5100",
-    "Firefighter/AEMT": "01-2200-5100",
-    "Firefighter/Paramedic": "01-2200-5100",
-    "Call Firefighter/EMT": "01-2200-5100",
-    "Call Firefighter/Paramedic": "01-2200-5100",
-    "DPW Seasonal": "01-4200-5100",
-    "Facilities Maintenance": "01-5100-5170",
-    "Administrative Services Coordinator": "01-5100-5160"
+    "Town Administrator": "1000-129-5100-0000",
+    "Executive Assistant / Cable Clerk": "1000-122-5100-0000",
+    "Town Accountant": "1000-129-5100-0000",
+    "Treasurer/Collector": "1000-149-5100-0000",
+    "Assistant Treasurer": "1000-149-5100-0000",
+    "Chief of Police": "1000-210-5100-0000",
+    "Fire Chief": "1000-220-5100-0000",
+    "DPW Director": "1000-420-5100-0000",
+    "Library Assistant": "1000-610-5100-0000",
+    "Inspectional Services Coordinator": "1000-241-5100-0000",
+    "COA Director": "1000-541-5100-0000",
+    "Building Commissioner": "1000-241-5100-0000",
+    "Police Admin / BOH Clerk": "1000-210-5100-0000",
+    "MART Driver": "1000-129-5100-0000",
+    "MART Supervisor": "1000-129-5100-0000",
+    "Call Firefighter": "1000-220-5100-0000",
+    "Call LT/EMT": "1000-220-5100-0000",
+    "Call LT/Paramedic": "1000-220-5100-0000",
+    "Firefighter/AEMT": "1000-220-5100-0000",
+    "Firefighter/Paramedic": "1000-220-5100-0000",
+    "Call Firefighter/EMT": "1000-220-5100-0000",
+    "Call Firefighter/Paramedic": "1000-220-5100-0000",
+    "DPW Seasonal": "1000-420-5100-0000",
+    "Facilities Maintenance": "1000-192-5100-0000",
+    "Administrative Services Coordinator": "1000-141-5100-0000"
   };
 
-  // Employee-specific overrides (only if an individual must hit a unique GL)
-  const EMPLOYEE_GLS = {
-    // "FIRST LAST": "XX-XXXX-XXXX"
-    // e.g., "NATHAN BOUDREAU": "01-5100-5110"
-  };
+  // Employee-specific overrides
+  const EMPLOYEE_GLS = {};
 
-  // Multi-position choices per employee (shows a role picker per row)
+  // Multi-position choices per employee - Updated with actual Town codes
   const EMPLOYEE_POSITIONS = {
-    // Example:
-    // "NANCY PERRON": [
-    //   { title: "Police Admin", gl: "01-2100-5100" },
-    //   { title: "BOH Clerk",    gl: "01-5100-5190" }
-    // ]
+    "PATRICIA LOWE": [
+      { title: "Executive Assistant (Select Board)", gl: "1000-122-5100-0000", rate: 23.38 },
+      { title: "Library Assistant", gl: "1000-610-5100-0000", rate: 17.57 }
+    ],
+    "NANCY PERRON": [
+      { title: "Police Administrative Assistant", gl: "1000-210-5100-0000" },
+      { title: "Board of Health Clerk", gl: "1000-241-5100-0000" }
+    ],
+    "LEEANN E MOSES": [
+      { title: "Assessor Administrative", gl: "1000-141-5100-0000" },
+      { title: "Land Use Administrative", gl: "1000-241-5100-0000" }
+    ]
   };
 
   // ---- Helpers for GL resolution & UI ----
@@ -371,20 +509,121 @@ window.HubbTIME = (function () {
       document.body.appendChild(dl);
     }
     dl.innerHTML = '';
-    const opts = getEmployeeGLChoices(emp);
-    opts.forEach(o => {
-      const el = document.createElement('option');
-      el.value = o.value;
-      el.label = o.label;
-      dl.appendChild(el);
-    });
-    const def = getDefaultGL(emp);
-    if (def && !opts.some(o => o.value === def)) {
-      const el = document.createElement('option');
-      el.value = def;
-      el.label = `Default — ${def}`;
-      dl.appendChild(el);
+    
+    if (emp) {
+      // Get all relevant GL choices for this employee
+      const choices = getEmployeeGLChoices(emp);
+      
+      // Add employee-specific choices first (these are the most relevant)
+      choices.forEach(choice => {
+        const option = document.createElement('option');
+        option.value = choice.value;
+        option.label = choice.label; // This shows in the autocomplete dropdown
+        dl.appendChild(option);
+      });
+      
+      // Add a separator comment (not visible to user but helps in debugging)
+      dl.appendChild(document.createComment('--- General Town GL Codes ---'));
     }
+    
+    // Add all Town of Hubbardston Personnel GL Accounts as fallback options
+    const townGLCodes = [
+      { code: '1000-114-5100-0000', desc: 'Personnel – Moderator' },
+      { code: '1000-122-5100-0000', desc: 'Personnel – Select Board' },
+      { code: '1000-129-5100-0000', desc: 'Personnel – Town Administrator' },
+      { code: '1000-141-5100-0000', desc: 'Personnel – Assessor' },
+      { code: '1000-149-5100-0000', desc: 'Personnel – Treasurer/Collector' },
+      { code: '1000-161-5100-0000', desc: 'Personnel – Town Clerk' },
+      { code: '1000-192-5100-0000', desc: 'Personnel – Building & Maintenance' },
+      { code: '1000-210-5100-0000', desc: 'Personnel – Police' },
+      { code: '1000-220-5100-0000', desc: 'Personnel – Fire' },
+      { code: '1000-241-5100-0000', desc: 'Personnel – Land Use' },
+      { code: '1000-291-5100-0000', desc: 'Personnel – Emergency Management' },
+      { code: '1000-420-5100-0000', desc: 'Personnel – DPW' },
+      { code: '1000-423-5100-0000', desc: 'Personnel – Snow & Ice' },
+      { code: '1000-541-5100-0000', desc: 'Personnel – Senior Center' },
+      { code: '1000-610-5100-0000', desc: 'Personnel – Library' }
+    ];
+    
+    // Only add town codes that aren't already in employee choices
+    const existingValues = new Set(Array.from(dl.querySelectorAll('option')).map(opt => opt.value));
+    
+    townGLCodes.forEach(({ code, desc }) => {
+      if (!existingValues.has(code)) {
+        const option = document.createElement('option');
+        option.value = code;
+        option.label = `${code} — ${desc}`;
+        dl.appendChild(option);
+      }
+    });
+  }
+
+  // Enhanced GL input creation with better autocomplete
+  function createGLInput(initialGL = '', emp = null) {
+    const hasMulti = emp && EMPLOYEE_POSITIONS[emp.name] && EMPLOYEE_POSITIONS[emp.name].length;
+    
+    const glDiv = document.createElement('div');
+    glDiv.className = 'gl-cell';
+    
+    // Main GL input with datalist
+    const glInput = document.createElement('input');
+    glInput.type = 'text';
+    glInput.setAttribute('list', 'glList');
+    glInput.className = 'gl-input input';
+    glInput.placeholder = 'Type GL code or search...';
+    glInput.value = initialGL || getDefaultGL(emp);
+    glInput.style.minWidth = '15ch';
+    glInput.setAttribute('autocomplete', 'off');
+    
+    // Add search-as-you-type functionality
+    glInput.addEventListener('input', function() {
+      const query = this.value.toLowerCase();
+      const datalist = document.getElementById('glList');
+      if (!datalist) return;
+      
+      // Hide/show options based on search
+      Array.from(datalist.options).forEach(option => {
+        const matches = option.value.toLowerCase().includes(query) || 
+                       (option.label && option.label.toLowerCase().includes(query));
+        option.style.display = matches ? '' : 'none';
+      });
+    });
+    
+    glDiv.appendChild(glInput);
+    
+    // Quick select dropdown for multi-role employees
+    if (hasMulti) {
+      const glChooser = document.createElement('select');
+      glChooser.className = 'gl-chooser input';
+      glChooser.style.marginTop = 'var(--space-xs)';
+      
+      // Add default option
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = 'Quick select role...';
+      glChooser.appendChild(defaultOption);
+      
+      // Add employee-specific positions
+      EMPLOYEE_POSITIONS[emp.name].forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.gl;
+        option.textContent = position.title;
+        glChooser.appendChild(option);
+      });
+      
+      // Wire up the chooser to update the main input
+      glChooser.addEventListener('change', function() {
+        if (this.value) {
+          glInput.value = this.value;
+          // Trigger input event to recalculate totals
+          glInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      
+      glDiv.appendChild(glChooser);
+    }
+    
+    return glDiv;
   }
 
   function reseedBlankGLs() {
@@ -398,6 +637,14 @@ window.HubbTIME = (function () {
 
   // ---- DOM init ----
   window.addEventListener('DOMContentLoaded', () => {
+    // Show employee details section when populated
+    const showEmployeeDetails = () => {
+      const details = $('#employeeDetails');
+      if (details && currentEmployee) {
+        details.style.display = 'block';
+      }
+    };
+
     // Employees <datalist>
     const dl = $('#employeeList');
     if (dl) {
@@ -422,14 +669,36 @@ window.HubbTIME = (function () {
       });
     }
 
-    // Bind
-    const es = $('#employeeSearch');    if (es)  es.addEventListener('input', handleEmployee);
-    const ceb = $('#clearEmployeeBtn'); if (ceb) ceb.addEventListener('click', clearEmployee);
+    // Bind events
+    const es = $('#employeeSearch');    
+    if (es) es.addEventListener('input', (e) => {
+      handleEmployee(e);
+      showEmployeeDetails();
+    });
+    const ceb = $('#clearEmployeeBtn'); 
+    if (ceb) ceb.addEventListener('click', () => {
+      clearEmployee();
+      const details = $('#employeeDetails');
+      if (details) details.style.display = 'none';
+    });
     if (wsel) wsel.addEventListener('change', handleWarrant);
     const add = $('#addRowBtn');        if (add) add.addEventListener('click', () => addTimeRow());
     const clr = $('#clearAllBtn');      if (clr) clr.addEventListener('click', clearAllRows);
     const th  = $('#townHallBtn');      if (th)  th.addEventListener('click', addTownHallHours);
     const form= $('#timesheetForm');    if (form)form.addEventListener('submit', handleSubmit);
+
+    // Supplemental action buttons - using direct function calls
+    const split = $('#splitShiftBtn');  
+    if (split) {
+      split.addEventListener('click', () => {
+        // Super simple split shift - just add a new row
+        addTimeRow();
+        setMsg('New row added for split shift.', 'success', true);
+      });
+    }
+    const ot    = $('#overtimeBtn');    if (ot)    ot.addEventListener('click', addOvertimeDay);
+    const sick  = $('#sickBtn');        if (sick)  sick.addEventListener('click', addSickDay);
+    const vac   = $('#vacationBtn');    if (vac)   vac.addEventListener('click', addVacationDay);
 
     // Enter key advances through table fields
     document.addEventListener('keydown', (ev) => {
@@ -441,6 +710,8 @@ window.HubbTIME = (function () {
       }
     });
 
+    // Initial calculation
+    calculateTotals();
     setMsg("System loaded successfully. Select an employee to begin.", "info", true);
   });
 
@@ -453,27 +724,32 @@ window.HubbTIME = (function () {
 
     const idxEl = $('#employeeIndex');
     if (idxEl) idxEl.value = String(EMPLOYEES.indexOf(emp));
-    const dep = $('#department'); if (dep) dep.value = emp.department || '';
-    const pty = $('#payType');    if (pty) pty.value = emp.payType ? (emp.payType[0].toUpperCase() + emp.payType.slice(1)) : '';
+    const dep = $('#department'); if (dep) dep.textContent = emp.department || '—';
+    const pty = $('#payType');    if (pty) pty.textContent = emp.payType ? (emp.payType[0].toUpperCase() + emp.payType.slice(1)) : '—';
     const rate= $('#rate');
     if (rate) {
-      rate.value = emp.payType === 'salary'
+      rate.textContent = emp.payType === 'salary'
         ? (emp.rate ? (currency(emp.rate) + ' annually') : '—')
         : (emp.rate ? (currency(emp.rate) + ' per hour') : '—');
     }
 
-    // Build GL choices and seed any blank GL inputs
     rebuildGLDatalistFor(emp);
     reseedBlankGLs();
-
     calculateTotals();
   }
 
   function clearEmployee() {
     currentEmployee = null;
-    ['employeeIndex','employeeSearch','department','payType','rate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-    // Clear GL list since no active employee
-    const dl = document.getElementById('glList'); if (dl) dl.innerHTML = '';
+    ['employeeIndex','employeeSearch'].forEach(id => { 
+      const el = document.getElementById(id); 
+      if (el) el.value = ''; 
+    });
+    ['department','payType','rate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '—';
+    });
+    const dl = document.getElementById('glList'); 
+    if (dl) dl.innerHTML = '';
     calculateTotals();
   }
 
@@ -490,19 +766,19 @@ window.HubbTIME = (function () {
   }
 
   function addTimeRowWith(date, start, end, hours, type, glCode, description) {
-    const tbody = $('#timeBody'); if (!tbody) return;
-
-    const initialGL = glCode || getDefaultGL(currentEmployee);
-    const hasMulti = currentEmployee && EMPLOYEE_POSITIONS[currentEmployee.name] && EMPLOYEE_POSITIONS[currentEmployee.name].length;
+    const tbody = $('#timeBody'); 
+    if (!tbody) return;
 
     const tr = document.createElement('tr');
+    
+    // Create all cells except GL cell
     tr.innerHTML =
-      `<td><input type="date" class="date-cell" value="${date || ''}"></td>
-       <td><input type="time" class="time-start" value="${start || ''}"></td>
-       <td><input type="time" class="time-end" value="${end || ''}"></td>
-       <td><input type="number" step="0.25" min="0" placeholder="0.00" class="time-hours" value="${hours || ''}"></td>
+      `<td><input type="date" class="date-cell input" value="${date || ''}"></td>
+       <td><input type="time" class="time-start input" value="${start || ''}"></td>
+       <td><input type="time" class="time-end input" value="${end || ''}"></td>
+       <td><input type="number" step="0.25" min="0" placeholder="0.00" class="time-hours input" value="${hours || ''}"></td>
        <td>
-         <select class="time-type">
+         <select class="time-type input">
            <option${type==='Regular'?' selected':''}>Regular</option>
            <option${type==='Sick'?' selected':''}>Sick</option>
            <option${type==='Personal'?' selected':''}>Personal</option>
@@ -510,20 +786,20 @@ window.HubbTIME = (function () {
            <option${type==='Holiday'?' selected':''}>Holiday</option>
          </select>
        </td>
+       <td></td>
+       <td><input type="text" class="input" placeholder="Describe work or leave" value="${description || ''}"></td>
        <td>
-         <div class="gl-cell" style="display:flex; gap:.5rem; align-items:center;">
-           <input type="text" list="glList" class="gl-input" placeholder="GL Code" value="${initialGL || ''}" style="min-width:12ch;">
-           ${hasMulti ? `
-             <select class="gl-chooser">
-               <option value="">Choose role…</option>
-               ${EMPLOYEE_POSITIONS[currentEmployee.name].map(p => (
-                 `<option value="${p.gl}">${p.title} — ${p.gl}</option>`
-               )).join('')}
-             </select>` : ''}
+         <div style="display:flex; gap:4px; flex-wrap:wrap;">
+           <button type="button" class="btn secondary insert-above" style="font-size:12px; padding:2px 6px;">↑ Above</button>
+           <button type="button" class="btn secondary insert-below" style="font-size:12px; padding:2px 6px;">↓ Below</button>
+           <button type="button" class="btn danger remove-row" style="font-size:12px; padding:2px 6px;">Remove</button>
          </div>
-       </td>
-       <td><input type="text" placeholder="Describe work or leave" value="${description || ''}"></td>
-       <td><button type="button" class="btn danger remove-row">Remove</button></td>`;
+       </td>`;
+
+    // Insert the custom GL cell
+    const glCell = tr.children[5]; // 6th cell (0-indexed)
+    const glInput = createGLInput(glCode || getDefaultGL(currentEmployee), currentEmployee);
+    glCell.appendChild(glInput);
 
     tbody.appendChild(tr);
 
@@ -532,8 +808,85 @@ window.HubbTIME = (function () {
       tr.querySelector('.time-hours').value = timeDiffHours(start, end).toFixed(2);
     }
 
-    // Wire events
-    tr.querySelector('.remove-row').addEventListener('click', () => { tr.remove(); calculateTotals(); });
+    // Wire up all the events
+    wireRowEvents(tr);
+    
+    return tr;
+  }
+
+  // Helper function to wire events for dynamically created rows
+  function wireRowEvents(tr) {
+    tr.querySelector('.remove-row').addEventListener('click', () => { 
+      tr.remove(); 
+      calculateTotals(); 
+    });
+
+    tr.querySelector('.insert-above').addEventListener('click', () => {
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = tr.innerHTML;
+      
+      // Clear the values in the new row but keep date and GL
+      newRow.querySelectorAll('input').forEach(input => {
+        if (input.type === 'date') {
+          input.value = tr.querySelector('.date-cell').value;
+        } else if (input.classList.contains('gl-input')) {
+          input.value = tr.querySelector('.gl-input').value;
+        } else {
+          input.value = '';
+        }
+      });
+      newRow.querySelectorAll('select').forEach(select => {
+        if (select.classList.contains('time-type')) {
+          select.value = tr.querySelector('.time-type').value;
+        } else {
+          select.selectedIndex = 0;
+        }
+      });
+
+      // Replace the GL cell with proper component
+      const glCell = newRow.children[5];
+      glCell.innerHTML = '';
+      const glInput = createGLInput(tr.querySelector('.gl-input').value, currentEmployee);
+      glCell.appendChild(glInput);
+
+      tr.parentNode.insertBefore(newRow, tr);
+      wireRowEvents(newRow);
+      calculateTotals();
+    });
+
+    tr.querySelector('.insert-below').addEventListener('click', () => {
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = tr.innerHTML;
+      
+      // Clear the values in the new row but keep date and GL
+      newRow.querySelectorAll('input').forEach(input => {
+        if (input.type === 'date') {
+          input.value = tr.querySelector('.date-cell').value;
+        } else if (input.classList.contains('gl-input')) {
+          input.value = tr.querySelector('.gl-input').value;
+        } else {
+          input.value = '';
+        }
+      });
+      newRow.querySelectorAll('select').forEach(select => {
+        if (select.classList.contains('time-type')) {
+          select.value = tr.querySelector('.time-type').value;
+        } else {
+          select.selectedIndex = 0;
+        }
+      });
+
+      // Replace the GL cell with proper component
+      const glCell = newRow.children[5];
+      glCell.innerHTML = '';
+      const glInput = createGLInput(tr.querySelector('.gl-input').value, currentEmployee);
+      glCell.appendChild(glInput);
+
+      tr.parentNode.insertBefore(newRow, tr.nextSibling);
+      wireRowEvents(newRow);
+      calculateTotals();
+    });
+    
     tr.querySelectorAll('input, select').forEach(inp => {
       inp.addEventListener('input', function () {
         const rowType = tr.querySelector('.time-type')?.value || 'Regular';
@@ -545,36 +898,91 @@ window.HubbTIME = (function () {
         calculateTotals();
       });
     });
-
-    const chooser = tr.querySelector('.gl-chooser');
-    const glInput = tr.querySelector('.gl-input');
-    if (chooser && glInput) {
-      chooser.addEventListener('change', () => {
-        if (chooser.value) glInput.value = chooser.value;
-        calculateTotals();
-      });
-    }
   }
 
   function clearAllRows() {
-    const tb = $('#timeBody'); if (tb) tb.innerHTML = '';
+    const tb = $('#timeBody'); 
+    if (tb) tb.innerHTML = '';
     calculateTotals();
   }
 
-  // Town Hall default hours per warrant
+  // ---- Supplemental Actions (Integrated) ----
+  
+  // Split shift - add a new row for clocking back in after breaks
+  function addSplitShift() {
+    const tbody = document.getElementById('timeBody');
+    if (!tbody || tbody.children.length === 0) {
+      setMsg('Add a time entry first before splitting shifts.', 'error', true);
+      return;
+    }
+
+    const lastRow = tbody.children[tbody.children.length - 1];
+    const dateInput = lastRow.querySelector('.date-cell');
+    const glInput = lastRow.querySelector('.gl-input');
+    const typeSelect = lastRow.querySelector('.time-type');
+    
+    if (!dateInput) {
+      setMsg('Could not find date in the last row.', 'error', true);
+      return;
+    }
+
+    const date = dateInput.value;
+    const gl = glInput ? glInput.value : getDefaultGL(currentEmployee);
+    const type = typeSelect ? typeSelect.value : 'Regular';
+    
+    if (!date) {
+      setMsg('Enter a date in the last row before splitting shifts.', 'error', true);
+      return;
+    }
+
+    // Add a new blank row with same date and GL for clocking back in
+    addTimeRowWith(date, '', '', '', type, gl, '');
+    
+    setMsg('New row added for clocking back in.', 'success', true);
+  }
+
+  function addQuickDay(kind, label, defaultHours = '8.00') {
+    if (!currentEmployee) {
+      setMsg('Please select an employee first.', 'error', true);
+      return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const gl = getDefaultGL(currentEmployee);
+    
+    addTimeRowWith(today, '', '', defaultHours, kind, gl, label);
+    calculateTotals();
+    setMsg(`${label} added successfully.`, 'success', true);
+  }
+
+  function addOvertimeDay() { 
+    addQuickDay('Regular', 'Overtime Day', '10.00');
+  }
+  
+  function addSickDay() { 
+    addQuickDay('Sick', 'Sick Day', '8.00');
+  }
+  
+  function addVacationDay() { 
+    addQuickDay('Vacation', 'Vacation Day', '8.00');
+  }
+
+  // Town Hall default hours per warrant (bi-weekly schedule)
   function addTownHallHours() {
-    if (!currentWarrant) { setMsg("Select a pay period first.", "info", true); return; }
+    if (!currentWarrant) { 
+      setMsg("Select a pay period first.", "info", true); 
+      return; 
+    }
     clearAllRows();
     const start = new Date(currentWarrant.start + 'T00:00:00');
     const end   = new Date(currentWarrant.end   + 'T00:00:00');
 
-    // Schedule template (Mon–Fri)
+    // Bi-weekly schedule: Mon/Wed/Thu 8-4, Tuesday 8-6
     const schedule = {
-      1: { start: "08:00", end: "16:00" }, // Mon
-      2: { start: "08:00", end: "18:00" }, // Tue
-      3: { start: "08:00", end: "16:00" }, // Wed
-      4: { start: "08:00", end: "16:00" }, // Thu
-      5: { start: "08:00", end: "16:00" }  // Fri
+      1: { start: "08:00", end: "16:00" }, // Monday 8-4
+      2: { start: "08:00", end: "18:00" }, // Tuesday 8-6  
+      3: { start: "08:00", end: "16:00" }, // Wednesday 8-4
+      4: { start: "08:00", end: "16:00" }  // Thursday 8-4
     };
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
@@ -585,9 +993,121 @@ window.HubbTIME = (function () {
       }
     }
     calculateTotals();
-    setMsg(`Town Hall hours template applied for ${currentWarrant.start} to ${currentWarrant.end}.`, "success", true);
+    setMsg(`Town Hall hours template applied for ${currentWarrant.start} to ${currentWarrant.end} (M/W/Th 8-4, Tu 8-6).`, "success", true);
   }
-  api.addTownHallHours = addTownHallHours;
+
+  // ---- GL Review & Cost Allocation ----
+  function updateGLReview() {
+    const glBreakdown = {};
+    const rows = Array.from(document.querySelectorAll('#timeBody tr'));
+    
+    rows.forEach(row => {
+      const hours = parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
+      const type = row.querySelector('.time-type')?.value || 'Regular';
+      const gl = row.querySelector('.gl-input')?.value || '';
+      
+      if (hours > 0 && gl) {
+        if (!glBreakdown[gl]) {
+          glBreakdown[gl] = {
+            regular: 0,
+            sick: 0,
+            personal: 0,
+            vacation: 0,
+            holiday: 0,
+            total: 0
+          };
+        }
+        
+        glBreakdown[gl][type.toLowerCase()] += hours;
+        glBreakdown[gl].total += hours;
+      }
+    });
+
+    const reviewWrap = $('#glReviewWrap');
+    if (!reviewWrap) return;
+
+    if (Object.keys(glBreakdown).length === 0) {
+      reviewWrap.innerHTML = `
+        <p class="text-center text-muted" style="padding:var(--space-xl);">
+          Enter time entries above to see GL code breakdown and cost allocation
+        </p>`;
+      return;
+    }
+
+    // Calculate costs if employee and rate are available
+    let costCalculation = '';
+    if (currentEmployee && currentEmployee.rate) {
+      costCalculation = currentEmployee.payType === 'hourly' 
+        ? `<th>Regular Cost</th><th>Overtime Cost</th><th>Leave Cost</th><th>Total Cost</th>`
+        : `<th>Salary Allocation</th>`;
+    }
+
+    let tableHTML = `
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>GL Code</th>
+              <th>Regular</th>
+              <th>Sick</th>
+              <th>Personal</th>
+              <th>Vacation</th>
+              <th>Holiday</th>
+              <th>Total Hours</th>
+              ${costCalculation}
+            </tr>
+          </thead>
+          <tbody>`;
+
+    Object.entries(glBreakdown).forEach(([gl, breakdown]) => {
+      let costCells = '';
+      if (currentEmployee && currentEmployee.rate) {
+        if (currentEmployee.payType === 'hourly') {
+          // Check for position-specific rate
+          let rate = currentEmployee.rate;
+          if (currentEmployee.name && EMPLOYEE_POSITIONS[currentEmployee.name]) {
+            const position = EMPLOYEE_POSITIONS[currentEmployee.name].find(pos => pos.gl === gl && pos.rate);
+            if (position) rate = position.rate;
+          }
+          
+          const regularCost = breakdown.regular * rate;
+          const overtimeCost = 0; // Would need weekly calculation
+          const leaveCost = (breakdown.sick + breakdown.personal + breakdown.vacation + breakdown.holiday) * rate;
+          const totalCost = regularCost + overtimeCost + leaveCost;
+          
+          costCells = `
+            <td>${currency(regularCost)}</td>
+            <td>${currency(overtimeCost)}</td>
+            <td>${currency(leaveCost)}</td>
+            <td><strong>${currency(totalCost)}</strong></td>`;
+        } else {
+          // Salary allocation
+          const totalHours = Object.values(glBreakdown).reduce((sum, b) => sum + b.total, 0);
+          const allocation = totalHours > 0 ? (breakdown.total / totalHours) * (currentEmployee.rate / 26) : 0;
+          costCells = `<td><strong>${currency(allocation)}</strong></td>`;
+        }
+      }
+
+      tableHTML += `
+        <tr>
+          <td><strong>${gl}</strong></td>
+          <td>${breakdown.regular.toFixed(2)}</td>
+          <td>${breakdown.sick.toFixed(2)}</td>
+          <td>${breakdown.personal.toFixed(2)}</td>
+          <td>${breakdown.vacation.toFixed(2)}</td>
+          <td>${breakdown.holiday.toFixed(2)}</td>
+          <td><strong>${breakdown.total.toFixed(2)}</strong></td>
+          ${costCells}
+        </tr>`;
+    });
+
+    tableHTML += `
+          </tbody>
+        </table>
+      </div>`;
+
+    reviewWrap.innerHTML = tableHTML;
+  }
 
   // ---- Totals & Pay ----
   function calculateTotals() {
@@ -630,27 +1150,67 @@ window.HubbTIME = (function () {
     setTxt('sumVacation', vac);
     setTxt('sumHoliday', hol);
 
-    // Pay
+    // Pay calculation - handle position-specific rates
     let gross = 0;
     if (currentEmployee && currentEmployee.rate) {
       if (currentEmployee.payType === 'hourly') {
-        const r = currentEmployee.rate;
-        const regPay = regPayable * r;
-        const otPay  = overtime * r * 1.5;
-        const leavePay = (sick + pers + vac + hol) * r;
-        gross = regPay + otPay + leavePay;
+        // Check if employee has position-specific rates
+        const hasPositionRates = currentEmployee.name && EMPLOYEE_POSITIONS[currentEmployee.name] && 
+                                EMPLOYEE_POSITIONS[currentEmployee.name].some(pos => pos.rate);
+        
+        if (hasPositionRates) {
+          // Calculate pay by GL code for position-specific rates
+          let totalPay = 0;
+          rows.forEach(row => {
+            const hours = parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
+            const type = row.querySelector('.time-type')?.value || 'Regular';
+            const gl = row.querySelector('.gl-input')?.value || '';
+            
+            if (hours > 0) {
+              // Find rate for this GL code
+              const position = EMPLOYEE_POSITIONS[currentEmployee.name].find(pos => pos.gl === gl);
+              const rate = position && position.rate ? position.rate : currentEmployee.rate;
+              
+              if (type === 'Regular') {
+                // Note: Overtime calculation with different rates would be complex
+                totalPay += hours * rate;
+              } else {
+                // Leave pay at regular rate
+                totalPay += hours * rate;
+              }
+            }
+          });
+          gross = totalPay;
+        } else {
+          // Standard single-rate calculation
+          const r = currentEmployee.rate;
+          const regPay = regPayable * r;
+          const otPay  = overtime * r * 1.5;
+          const leavePay = (sick + pers + vac + hol) * r;
+          gross = regPay + otPay + leavePay;
+        }
       } else if (currentEmployee.payType === 'salary') {
         gross = currentEmployee.rate / 26; // biweekly
       }
     }
-    const gp = document.getElementById('grossPay'); if (gp) gp.textContent = currency(gross);
+    const gp = document.getElementById('grossPay'); 
+    if (gp) gp.textContent = currency(gross);
+    
+    // Update GL review whenever totals change
+    updateGLReview();
   }
 
   // ---- Submit ----
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!currentEmployee) { setMsg("Please select an employee.", "error", true); return; }
-    if (!currentWarrant)  { setMsg("Please select a pay period.", "error", true); return; }
+    if (!currentEmployee) { 
+      setMsg("Please select an employee.", "error", true); 
+      return; 
+    }
+    if (!currentWarrant)  { 
+      setMsg("Please select a pay period.", "error", true); 
+      return; 
+    }
 
     // Collect rows
     const entries = [];
@@ -668,7 +1228,10 @@ window.HubbTIME = (function () {
       }
     });
 
-    if (!entries.length) { setMsg("Add at least one time entry.", "error", true); return; }
+    if (!entries.length) { 
+      setMsg("Add at least one time entry.", "error", true); 
+      return; 
+    }
 
     const totals = {
       totalHours: parseFloat(document.getElementById('totalHours')?.textContent || 0),
@@ -722,13 +1285,19 @@ window.HubbTIME = (function () {
       if (btn) btn.disabled = false;
     }
   }
-  // --- Export tiny hooks for supplemental scripts ---
-  api.addRow       = addTimeRow;
-  api.addRowWith   = addTimeRowWith;
-  api.recalc       = calculateTotals;
-  api.defaultGL    = getDefaultGL;
 
-  // expose API
-return Object.assign(prev || {}, api);
-})(window.HubbTIME);
+  // ---- Public API ----
+  api.addRow = addTimeRow;
+  api.addRowWith = addTimeRowWith;
+  api.recalc = calculateTotals;
+  api.defaultGL = getDefaultGL;
+  api.getCurrentEmployee = () => currentEmployee;
+  api.addTownHallHours = addTownHallHours;
+  api.addSplitShift = addSplitShift;
+  api.addOvertimeDay = addOvertimeDay;
+  api.addSickDay = addSickDay;
+  api.addVacationDay = addVacationDay;
+  api.updateGLReview = updateGLReview;
 
+  return api;
+})();
