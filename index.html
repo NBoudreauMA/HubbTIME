@@ -22,16 +22,9 @@
     <nav class="main-nav" aria-label="Primary" aria-expanded="false">
       <button class="nav-toggle" aria-expanded="false" aria-controls="navList">Menu</button>
       <ul id="navList">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="fy27/index.html">FY27 Budget</a></li>
-        <li><a href="reports/index.html">Reports</a></li>
-        <li><a href="benchmarks/index.html">Benchmarks</a></li>
-        <li><a href="capital/index.html">Capital</a></li>
-        <li><a href="grants/index.html">Grants</a></li>
-        <li><a href="checkbook/index.html">Checkbook</a></li>
-        <li><a href="meetings/index.html">Meetings</a></li>
-        <li><a href="participate/index.html">Participate</a></li>
-        <li><a href="Hubbtime.html" class="active">HubbTIME</a></li>
+        <li><a href="index.html" class="active">Home</a></li>
+        <!-- if you want a separate page too, keep this link pointing at your real file name -->
+        <li><a href="payroll.html">HubbTIME</a></li>
       </ul>
     </nav>
     <div style="margin-left: auto;">
@@ -230,15 +223,7 @@
     <p>&copy; 2025 Town of Hubbardston, MA · <a href="mailto:admin@hubbardstonma.gov">admin@hubbardstonma.gov</a></p>
   </footer>
 
-  <!-- Status Indicators -->
-  <div class="status-indicator saving" id="autoSaveIndicator" style="position:fixed; top:var(--space-md); right:var(--space-md); opacity:0; transition:opacity 0.3s ease; z-index:1000;" aria-live="polite">
-    <div class="loading-spinner"></div>
-    Auto-saved
-  </div>
-
-  <script>
-    // Use the complete JavaScript from the "HubbTIME Complete Final Version" artifact
-    // Place the entire JavaScript code here between these script tags
-  </script>
+  <!-- Load your JS bundle LAST so all IDs above exist when it runs -->
+  <script src="js/site.js"></script>
 </body>
 </html>
