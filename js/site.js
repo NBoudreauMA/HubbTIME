@@ -325,7 +325,7 @@ window.HubbTIME = (function () {
     ]
   };
 
-  // ---- Bottom GL Allocation defaults requested ----
+  // ---- Bottom GL Allocation defaults ----
   const DEFAULT_SPLITS = {
     'PATRICIA LOWE': [
       { gl: '1000-122-5100-0000', hours: 26 }, // Executive (Select Board)
@@ -337,7 +337,12 @@ window.HubbTIME = (function () {
     ]
   };
 
-  // ---- Helpers for GL resolution & UI (per-row GL retained as a fallback) ----
+  // ==== NEW: Employees who must only use bottom GL allocation ====
+  const BOTTOM_GL_ONLY = new Set(['PATRICIA LOWE', 'LEEANN E MOSES']);
+  const isBottomGLOnly = () =>
+    currentEmployee && BOTTOM_GL_ONLY.has((currentEmployee.name || '').toUpperCase());
+
+  // ---- Helpers for GL resolution & UI (per-row GL retained as fallback) ----
   function getDefaultGL(emp) {
     if (!emp) return "";
     if (emp.position && POSITION_GLS[emp.position]) return POSITION_GLS[emp.position];
@@ -355,7 +360,6 @@ window.HubbTIME = (function () {
     glInput.value = initialGL || getDefaultGL(emp);
     glInput.autocomplete = 'off';
     glDiv.appendChild(glInput);
-    // Optional quick chooser if roles exist
     if (emp && EMPLOYEE_POSITIONS[emp.name] && EMPLOYEE_POSITIONS[emp.name].length) {
       const glChooser = document.createElement('select');
       glChooser.className = 'gl-chooser input';
@@ -374,6 +378,16 @@ window.HubbTIME = (function () {
       glDiv.appendChild(glChooser);
     }
     return glDiv;
+  }
+
+  function reseedBlankRowGLs() {
+    if (isBottomGLOnly()) return; // <= DO NOT seed per-row GL for Patricia/Leeanne
+    const rows = Array.from(document.querySelectorAll('#timeBody tr'));
+    const def = getDefaultGL(currentEmployee);
+    rows.forEach(r => {
+      const glIn = r.querySelector('.gl-input');
+      if (glIn && !glIn.value && def) glIn.value = def;
+    });
   }
 
   // ---- DOM init ----
@@ -517,10 +531,15 @@ window.HubbTIME = (function () {
          </div>
        </td>`;
 
-    // Insert custom GL cell (kept for legacy / DPW rows; bottom allocation can override)
+    // === CHANGED: per-row GL hidden/ignored for Patricia & Leeanne ===
     const glCell = tr.children[5];
-    const glInput = createGLInput(glCode || getDefaultGL(currentEmployee), currentEmployee);
-    glCell.appendChild(glInput);
+    if (isBottomGLOnly()) {
+      glCell.innerHTML = '<span class="text-muted">Bottom allocation</span>';
+      glCell.dataset.ignoreGl = 'true';
+    } else {
+      const glInput = createGLInput(glCode || getDefaultGL(currentEmployee), currentEmployee);
+      glCell.appendChild(glInput);
+    }
 
     tbody.appendChild(tr);
 
@@ -538,10 +557,19 @@ window.HubbTIME = (function () {
     tr.querySelector('.insert-above').addEventListener('click', () => {
       const newRow = document.createElement('tr');
       newRow.innerHTML = tr.innerHTML;
+
+      // Rebuild GL cell properly
       const glCell = newRow.children[5];
       glCell.innerHTML = '';
-      const glInput = createGLInput(tr.querySelector('.gl-input')?.value || getDefaultGL(currentEmployee), currentEmployee);
-      glCell.appendChild(glInput);
+      if (isBottomGLOnly()) {
+        glCell.innerHTML = '<span class="text-muted">Bottom allocation</span>';
+        glCell.dataset.ignoreGl = 'true';
+      } else {
+        const priorGL = tr.querySelector('.gl-input')?.value || getDefaultGL(currentEmployee);
+        const glInput = createGLInput(priorGL, currentEmployee);
+        glCell.appendChild(glInput);
+      }
+
       tr.parentNode.insertBefore(newRow, tr);
       wireRowEvents(newRow);
       calculateTotals();
@@ -550,10 +578,19 @@ window.HubbTIME = (function () {
     tr.querySelector('.insert-below').addEventListener('click', () => {
       const newRow = document.createElement('tr');
       newRow.innerHTML = tr.innerHTML;
+
+      // Rebuild GL cell properly
       const glCell = newRow.children[5];
       glCell.innerHTML = '';
-      const glInput = createGLInput(tr.querySelector('.gl-input')?.value || getDefaultGL(currentEmployee), currentEmployee);
-      glCell.appendChild(glInput);
+      if (isBottomGLOnly()) {
+        glCell.innerHTML = '<span class="text-muted">Bottom allocation</span>';
+        glCell.dataset.ignoreGl = 'true';
+      } else {
+        const priorGL = tr.querySelector('.gl-input')?.value || getDefaultGL(currentEmployee);
+        const glInput = createGLInput(priorGL, currentEmployee);
+        glCell.appendChild(glInput);
+      }
+
       tr.parentNode.insertBefore(newRow, tr.nextSibling);
       wireRowEvents(newRow);
       calculateTotals();
@@ -575,15 +612,6 @@ window.HubbTIME = (function () {
   function clearAllRows() {
     const tb = $('#timeBody'); if (tb) tb.innerHTML = '';
     calculateTotals();
-  }
-
-  function reseedBlankRowGLs() {
-    const rows = Array.from(document.querySelectorAll('#timeBody tr'));
-    const def = getDefaultGL(currentEmployee);
-    rows.forEach(r => {
-      const glIn = r.querySelector('.gl-input');
-      if (glIn && !glIn.value && def) glIn.value = def;
-    });
   }
 
   // ---- Supplemental Quick Buttons ----
@@ -679,7 +707,7 @@ window.HubbTIME = (function () {
 
     const addRow = (row = { gl:'', hours:'', pct:'' }) => { glSplits.push(row); render(); };
     const setRows = (rows) => { glSplits = rows.map(r => ({ gl:r.gl, hours:toNum(r.hours), pct:toNum(r.pct) })); render(); };
-    const updateFromTotal = () => { // keep pct/hours consistent when total hours changes
+    const updateFromTotal = () => {
       const total = toNum(totalHoursEl?.textContent || 0);
       glSplits = glSplits.map(r => {
         if ((r.pct || r.pct === 0) && (r.hours === '' || r.hours == null) && total) {
@@ -721,27 +749,26 @@ window.HubbTIME = (function () {
     const reviewWrap = $('#glReviewWrap');
     if (!reviewWrap) return;
 
-    const totalHours = toNum($('#totalHours')?.textContent || 0);
     const useBottom = glAllocation.getRows().length && glAllocation.isBalanced();
 
     let glBreakdown = {};
     if (useBottom) {
-      // Build from bottom allocation
       glAllocation.getRows().forEach(r => {
         const gl = r.gl || '';
         const h = toNum(r.hours);
         if (!gl || !h) return;
         if (!glBreakdown[gl]) glBreakdown[gl] = { regular: 0, sick: 0, personal: 0, vacation: 0, holiday: 0, total: 0 };
-        glBreakdown[gl].regular += h; // treat as overall total; category split omitted here
+        glBreakdown[gl].regular += h; // treat as overall total
         glBreakdown[gl].total += h;
       });
     } else {
-      // Fall back to per-row GL
       const rows = Array.from(document.querySelectorAll('#timeBody tr'));
       rows.forEach(row => {
         const hours = toNum(row.querySelector('.time-hours')?.value || 0);
         const type = row.querySelector('.time-type')?.value || 'Regular';
-        const gl = row.querySelector('.gl-input')?.value || '';
+        const glCell = row.children[5];
+        const ignore = glCell && glCell.dataset && glCell.dataset.ignoreGl === 'true';
+        const gl = ignore ? '' : (row.querySelector('.gl-input')?.value || '');
         if (hours > 0 && gl) {
           if (!glBreakdown[gl]) glBreakdown[gl] = { regular: 0, sick: 0, personal: 0, vacation: 0, holiday: 0, total: 0 };
           glBreakdown[gl][type.toLowerCase()] += hours;
@@ -762,7 +789,7 @@ window.HubbTIME = (function () {
         : `<th>Salary Allocation</th>`;
     }
 
-    let tableHTML = `
+    let html = `
       <div class="tableWrap">
         <table>
           <thead>
@@ -779,19 +806,18 @@ window.HubbTIME = (function () {
           </thead>
           <tbody>`;
 
-    Object.entries(glBreakdown).forEach(([gl, breakdown]) => {
+    Object.entries(glBreakdown).forEach(([gl, b]) => {
       let costCells = '';
       if (currentEmployee && currentEmployee.rate) {
         if (currentEmployee.payType === 'hourly') {
-          // Role-based rate if applicable
           let rate = currentEmployee.rate;
           if (currentEmployee.name && EMPLOYEE_POSITIONS[currentEmployee.name]) {
             const role = EMPLOYEE_POSITIONS[currentEmployee.name].find(pos => pos.gl === gl && pos.rate);
             if (role) rate = role.rate;
           }
-          const regularCost = breakdown.regular * rate;
+          const regularCost = b.regular * rate;
           const overtimeCost = 0; // weekly OT not split per-GL here
-          const leaveCost = (breakdown.sick + breakdown.personal + breakdown.vacation + breakdown.holiday) * rate;
+          const leaveCost = (b.sick + b.personal + b.vacation + b.holiday) * rate;
           const totalCost = regularCost + overtimeCost + leaveCost;
           costCells = `
             <td>${currency(regularCost)}</td>
@@ -799,28 +825,27 @@ window.HubbTIME = (function () {
             <td>${currency(leaveCost)}</td>
             <td><strong>${currency(totalCost)}</strong></td>`;
         } else {
-          // Salary: allocate biweekly pay by hours proportion
-          const total = Object.values(glBreakdown).reduce((sum, b) => sum + b.total, 0);
-          const allocation = total > 0 ? (breakdown.total / total) * (currentEmployee.rate / 26) : 0;
+          const total = Object.values(glBreakdown).reduce((sum, x) => sum + x.total, 0);
+          const allocation = total > 0 ? (b.total / total) * (currentEmployee.rate / 26) : 0;
           costCells = `<td><strong>${currency(allocation)}</strong></td>`;
         }
       }
 
-      tableHTML += `
+      html += `
         <tr>
           <td><strong>${gl}</strong></td>
-          <td>${fmtHrs(breakdown.regular)}</td>
-          <td>${fmtHrs(breakdown.sick)}</td>
-          <td>${fmtHrs(breakdown.personal)}</td>
-          <td>${fmtHrs(breakdown.vacation)}</td>
-          <td>${fmtHrs(breakdown.holiday)}</td>
-          <td><strong>${fmtHrs(breakdown.total)}</strong></td>
+          <td>${fmtHrs(b.regular)}</td>
+          <td>${fmtHrs(b.sick)}</td>
+          <td>${fmtHrs(b.personal)}</td>
+          <td>${fmtHrs(b.vacation)}</td>
+          <td>${fmtHrs(b.holiday)}</td>
+          <td><strong>${fmtHrs(b.total)}</strong></td>
           ${costCells}
         </tr>`;
     });
 
-    tableHTML += `</tbody></table></div>`;
-    reviewWrap.innerHTML = tableHTML;
+    html += `</tbody></table></div>`;
+    reviewWrap.innerHTML = html;
   }
 
   // ---- Totals & Pay ----
@@ -863,7 +888,7 @@ window.HubbTIME = (function () {
     setTxt('sumVacation', vac);
     setTxt('sumHoliday', hol);
 
-    // Pay calculation (rough): role-based hourly where available
+    // Pay calculation
     let gross = 0;
     if (currentEmployee && currentEmployee.rate) {
       if (currentEmployee.payType === 'hourly') {
@@ -872,7 +897,9 @@ window.HubbTIME = (function () {
           let totalPay = 0;
           rows.forEach(row => {
             const hours = toNum(row.querySelector('.time-hours')?.value || 0);
-            const gl = row.querySelector('.gl-input')?.value || '';
+            const glCell = row.children[5];
+            const ignore = glCell && glCell.dataset && glCell.dataset.ignoreGl === 'true';
+            const gl = ignore ? '' : (row.querySelector('.gl-input')?.value || '');
             if (!hours) return;
             const role = EMPLOYEE_POSITIONS[currentEmployee.name].find(p => p.gl === gl);
             const rate = role && role.rate ? role.rate : currentEmployee.rate;
@@ -892,7 +919,6 @@ window.HubbTIME = (function () {
     }
     $('#grossPay') && ($('#grossPay').textContent = currency(gross));
 
-    // Sync bottom allocation against new totals
     glAllocation.updateFromTotal();
     updateGLReview();
   }
@@ -903,6 +929,12 @@ window.HubbTIME = (function () {
     if (!currentEmployee) { setMsg("Please select an employee.", "error", true); return; }
     if (!currentWarrant)  { setMsg("Please select a pay period.", "error", true); return; }
 
+    // Enforce bottom GL for Patricia & Leeanne
+    if (isBottomGLOnly() && !glAllocation.isBalanced()) {
+      setMsg('Use the GL Allocation at the bottom and make it equal to Total Hours for this employee.', 'danger', true);
+      return;
+    }
+
     // Build entries from rows
     const entries = [];
     const rows = Array.from(document.querySelectorAll('#timeBody tr'));
@@ -912,7 +944,9 @@ window.HubbTIME = (function () {
       const end  = row.querySelector('.time-end')?.value || '';
       const hours= toNum(row.querySelector('.time-hours')?.value || 0);
       const type = row.querySelector('.time-type')?.value || 'Regular';
-      const gl   = row.querySelector('.gl-input')?.value || '';
+      const glCell = row.children[5];
+      const ignore = glCell && glCell.dataset && glCell.dataset.ignoreGl === 'true';
+      const gl   = ignore ? '' : (row.querySelector('.gl-input')?.value || '');
       const desc = row.children[6]?.querySelector('input')?.value || '';
       if (date && hours > 0) {
         entries.push({ date, start, end, hours, type, gl, description: desc });
@@ -942,13 +976,15 @@ window.HubbTIME = (function () {
         .filter(r => r.gl && toNum(r.hours) > 0)
         .map(r => ({ gl: r.gl, hours: toNum(r.hours), pct: toNum(r.pct) }));
     } else {
-      // fallback: roll up per-row to totals by GL
+      // fallback: roll up per-row to totals by GL (ignored for Patricia/Leeanne since rows have no GLs)
       const roll = {};
       entries.forEach(en => {
         if (!en.gl) return;
         roll[en.gl] = (roll[en.gl] || 0) + en.hours;
       });
-      gl_allocation = Object.entries(roll).map(([gl, hours]) => ({ gl, hours, pct: totals.totalHours ? (hours / totals.totalHours) * 100 : 0 }));
+      gl_allocation = Object.entries(roll).map(([gl, hours]) => ({
+        gl, hours, pct: totals.totalHours ? (hours / totals.totalHours) * 100 : 0
+      }));
     }
 
     const payload = {
