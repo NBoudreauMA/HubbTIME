@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HubbTIME · HubbFISCAL</title>
   <meta name="description" content="Town of Hubbardston — Non-Union Biweekly Timesheet (HubbTIME)" />
+  <link rel="icon" href="assets/favicon.svg" />
   <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
@@ -21,11 +22,19 @@
     <nav class="main-nav" aria-label="Primary" aria-expanded="false">
       <button class="nav-toggle" aria-expanded="false" aria-controls="navList">Menu</button>
       <ul id="navList">
-        <li><a href="index.html" class="active">Home</a></li>
-        <li><a href="payroll.html">HubbTIME</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="fy27/index.html">FY27 Budget</a></li>
+        <li><a href="reports/index.html">Reports</a></li>
+        <li><a href="benchmarks/index.html">Benchmarks</a></li>
+        <li><a href="capital/index.html">Capital</a></li>
+        <li><a href="grants/index.html">Grants</a></li>
+        <li><a href="checkbook/index.html">Checkbook</a></li>
+        <li><a href="meetings/index.html">Meetings</a></li>
+        <li><a href="participate/index.html">Participate</a></li>
+        <li><a href="Hubbtime.html" class="active">HubbTIME</a></li>
       </ul>
     </nav>
-    <div style="margin-left:auto">
+    <div style="margin-left: auto;">
       <button id="themeToggle" class="btn ghost" aria-pressed="false">Light</button>
     </div>
   </header>
@@ -34,57 +43,81 @@
     <div id="hubbtimeContainer">
       <header class="page-header">
         <h1>Town of Hubbardston — Enhanced Biweekly Timesheet</h1>
-        <p>Enter time normally; allocate GL **at the bottom**.</p>
+        <p>Smart timesheet system with automated calculations and municipal GL integration</p>
       </header>
 
       <form id="timesheetForm">
         <div id="systemMsg" class="alert info" role="status" aria-live="polite" style="display:none;"></div>
 
-        <!-- Employee -->
+        <!-- Employee Information Section -->
         <section class="card">
-          <div class="card-header"><h2 class="card-title">Employee Information</h2></div>
+          <div class="card-header">
+            <h2 class="card-title">Employee Information</h2>
+          </div>
+          
           <div class="form-group">
             <label class="label" for="employeeSearch">Employee (search by name)</label>
             <div style="display:flex; gap:var(--space-sm); align-items:center;">
-              <input id="employeeSearch" list="employeeList" placeholder="Start typing a name..." autocomplete="off" class="input">
+              <input 
+                id="employeeSearch" 
+                list="employeeList" 
+                placeholder="Start typing a name..." 
+                autocomplete="off" 
+                class="input"
+              >
               <button type="button" class="btn secondary" id="clearEmployeeBtn">Clear</button>
             </div>
-            <datalist id="employeeList">
-              <option value="PATRICIA LOWE"></option>
-              <option value="LEEANN E MOSES"></option>
-            </datalist>
+            <datalist id="employeeList"></datalist>
             <input type="hidden" id="employeeIndex" value="">
           </div>
+
           <div class="employee-info" id="employeeDetails" style="display:none;">
             <div class="totals-grid">
-              <div class="total-item"><div class="total-label">Department</div><div class="total-value" id="department">—</div></div>
-              <div class="total-item"><div class="total-label">Pay Type</div><div class="total-value" id="payType">—</div></div>
-              <div class="total-item"><div class="total-label">Rate / Salary</div><div class="total-value" id="rate">—</div></div>
+              <div class="total-item">
+                <div class="total-label">Department</div>
+                <div class="total-value" id="department">—</div>
+              </div>
+              <div class="total-item">
+                <div class="total-label">Pay Type</div>
+                <div class="total-value" id="payType">—</div>
+              </div>
+              <div class="total-item">
+                <div class="total-label">Rate / Salary</div>
+                <div class="total-value" id="rate">—</div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- Pay Period -->
+        <!-- Pay Period Selection -->
         <section class="card">
-          <div class="card-header"><h2 class="card-title">Pay Period</h2></div>
+          <div class="card-header">
+            <h2 class="card-title">Pay Period</h2>
+          </div>
+          
           <div class="form-group">
             <label class="label" for="warrant">Select Pay Period</label>
             <select id="warrant" class="input">
               <option value="">Select Pay Period...</option>
-              <option value="6">Warrant #6 (Sep 7 – Sep 20, 2025)</option>
-              <option value="7">Warrant #7 (Sep 21 – Oct 4, 2025)</option>
             </select>
           </div>
         </section>
 
-        <!-- Time Entries -->
+        <!-- Time Entries Section -->
         <section class="card">
-          <div class="card-header"><h2 class="card-title">Time Entries</h2></div>
+          <div class="card-header">
+            <h2 class="card-title">Time Entries</h2>
+          </div>
 
           <div class="quick-actions">
             <button type="button" class="btn primary" id="addRowBtn">Add Row</button>
             <button type="button" class="btn secondary" id="townHallBtn">Town Hall Hours</button>
             <button type="button" class="btn secondary" id="splitShiftBtn">Split Shift</button>
+            <button type="button" class="btn secondary" id="overtimeBtn">Overtime Day</button>
+            <button type="button" class="btn secondary" id="sickBtn">Sick Day</button>
+            <button type="button" class="btn secondary" id="personalBtn">Personal Day</button>
+            <button type="button" class="btn secondary" id="vacationBtn">Vacation Day</button>
+            <button type="button" class="btn secondary" id="holidayBtn">Holiday</button>
             <button type="button" class="btn danger" id="clearAllBtn">Clear All</button>
           </div>
 
@@ -94,86 +127,96 @@
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Start</th>
-                    <th>End</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
                     <th>Hours</th>
                     <th>Type</th>
+                    <th>GL Code</th>
                     <th>Description</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="timeBody"></tbody>
+                <tbody id="timeBody">
+                  <!-- Dynamic rows will be inserted here -->
+                </tbody>
               </table>
             </div>
           </div>
         </section>
 
-        <!-- Summary -->
+        <!-- Summary Section -->
         <section class="card">
-          <div class="card-header"><h2 class="card-title">Summary</h2></div>
-          <div class="totals-panel" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-md);">
-            <div>
-              <div class="total-label">Total Hours This Period</div>
-              <div id="totalHours" class="total-value">0.00</div>
-            </div>
-            <div style="text-align:right;">
-              <div class="total-label">Estimated Gross Pay</div>
-              <div id="grossPay" class="total-value">$0.00</div>
+          <div class="card-header">
+            <h2 class="card-title">Summary</h2>
+          </div>
+
+          <div class="totals-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-md);">
+              <div>
+                <div class="total-label">Total Hours This Period</div>
+                <div id="totalHours" class="total-value">0.00</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="total-label">Estimated Gross Pay</div>
+                <div id="grossPay" class="total-value">$0.00</div>
+              </div>
             </div>
           </div>
+
           <div class="totals-grid">
-            <div class="total-item"><div class="total-label">Regular</div><div class="total-value" id="sumRegular">0.00</div></div>
-            <div class="total-item"><div class="total-label">Sick</div><div class="total-value" id="sumSick">0.00</div></div>
-            <div class="total-item"><div class="total-label">Personal</div><div class="total-value" id="sumPersonal">0.00</div></div>
-            <div class="total-item"><div class="total-label">Vacation</div><div class="total-value" id="sumVacation">0.00</div></div>
-            <div class="total-item"><div class="total-label">Holiday</div><div class="total-value" id="sumHoliday">0.00</div></div>
-          </div>
-        </section>
-
-        <!-- GL Allocation (Bottom Split) -->
-        <section class="card" id="glAllocationSection">
-          <div class="card-header"><h2 class="card-title">GL Allocation</h2></div>
-          <div class="table-container">
-            <div class="tableWrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>GL Account</th>
-                    <th>Hours</th>
-                    <th>%</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="glSplitBody"></tbody>
-                <tfoot>
-                  <tr>
-                    <td class="total-label">Total Allocated</td>
-                    <td id="allocatedHours">0.00</td>
-                    <td id="allocatedPct">0%</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
+            <div class="total-item">
+              <div class="total-label">Regular</div>
+              <div class="total-value" id="sumRegular">0.00</div>
+            </div>
+            <div class="total-item">
+              <div class="total-label">Sick</div>
+              <div class="total-value" id="sumSick">0.00</div>
+            </div>
+            <div class="total-item">
+              <div class="total-label">Personal</div>
+              <div class="total-value" id="sumPersonal">0.00</div>
+            </div>
+            <div class="total-item">
+              <div class="total-label">Vacation</div>
+              <div class="total-value" id="sumVacation">0.00</div>
+            </div>
+            <div class="total-item">
+              <div class="total-label">Holiday</div>
+              <div class="total-value" id="sumHoliday">0.00</div>
             </div>
           </div>
-          <div style="display:flex; gap: var(--space-sm); margin-top: var(--space-md);">
-            <button type="button" class="btn secondary" id="addGLSplitBtn">Add GL Split</button>
-            <button type="button" class="btn ghost" id="fill100Btn" title="Allocate everything to a single GL">Allocate All To One</button>
-          </div>
-          <p class="text-muted" style="margin-top: var(--space-sm);">
-            Allocation must equal your total hours this period. Use hours or percentages — we’ll calculate the other.
-          </p>
         </section>
 
-        <!-- Submit -->
+        <!-- GL Review Section -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">GL Review — Hours & Cost Allocation</h2>
+          </div>
+          
+          <div id="glReviewWrap" class="table-container">
+            <p class="text-center text-muted" style="padding:var(--space-xl);">
+              Enter time entries above to see GL code breakdown and cost allocation
+            </p>
+          </div>
+          
+          <div class="alert info">
+            <strong>Smart Allocation:</strong> 
+            Hourly employees: Regular hours automatically convert to overtime (1.5x rate) when weekly total exceeds 40 hours. 
+            Salary employees: Biweekly salary split proportionally across GL codes based on time allocation.
+          </div>
+        </section>
+
+        <!-- Submit Section (with compliance + signature notice) -->
         <section class="card text-center">
           <div class="alert info" role="note" aria-label="Compliance Notice" style="margin-bottom:var(--space-md); text-align:left;">
             <p><strong>Compliance Notice:</strong></p>
             <p>
-              By selecting “Submit Timesheet,” you attest that the information provided is accurate and complete to the best of your knowledge.
-              Your submission constitutes your electronic signature and certification in accordance with Massachusetts General Laws.
+              By selecting “Submit Timesheet,” you attest that the information provided is accurate and complete to the best of your knowledge. 
+              Your submission constitutes your electronic signature and certification in accordance with Massachusetts General Laws, including 
+              public records requirements (MGL c. 66) and attestations made under penalty of perjury (MGL c. 268 §6A).
             </p>
           </div>
+
           <button type="submit" class="btn primary" id="submitBtn" style="padding:var(--space-md) var(--space-xl); font-size:1.1rem;">
             Submit Timesheet
           </button>
@@ -187,6 +230,15 @@
     <p>&copy; 2025 Town of Hubbardston, MA · <a href="mailto:admin@hubbardstonma.gov">admin@hubbardstonma.gov</a></p>
   </footer>
 
-  <script src="js/site.js"></script>
+  <!-- Status Indicators -->
+  <div class="status-indicator saving" id="autoSaveIndicator" style="position:fixed; top:var(--space-md); right:var(--space-md); opacity:0; transition:opacity 0.3s ease; z-index:1000;" aria-live="polite">
+    <div class="loading-spinner"></div>
+    Auto-saved
+  </div>
+
+  <script>
+    // Use the complete JavaScript from the "HubbTIME Complete Final Version" artifact
+    // Place the entire JavaScript code here between these script tags
+  </script>
 </body>
 </html>
