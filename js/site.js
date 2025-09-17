@@ -12,7 +12,7 @@
   const nav = document.querySelector('.main-nav');
   const toggle = document.querySelector('.nav-toggle');
   if (toggle && nav) {
-    toggle.addEventListener('click', () => {
+    toggle.addEventListener('click', function() {
       const expanded = nav.getAttribute('aria-expanded') === 'true';
       nav.setAttribute('aria-expanded', String(!expanded));
       toggle.setAttribute('aria-expanded', String(!expanded));
@@ -22,25 +22,29 @@
   // Active link highlighting
   try {
     const here = location.pathname.split('/').filter(Boolean).pop() || 'index.html';
-    document.querySelectorAll('.main-nav a').forEach(a => {
+    document.querySelectorAll('.main-nav a').forEach(function(a) {
       const hrefLast = (a.getAttribute('href') || '').split('/').filter(Boolean).pop();
       if (hrefLast === here) a.classList.add('active');
     });
-  } catch (e) { /* noop */ }
+  } catch (e) { 
+    // noop 
+  }
 
   // Quick search (for a grid of .card under #moduleGrid, if present)
   const search = document.getElementById('quickSearch');
   const grid = document.getElementById('moduleGrid');
   if (search && grid) {
     const cards = Array.from(grid.querySelectorAll('.card'));
-    const filter = q => {
+    const filter = function(q) {
       const needle = q.trim().toLowerCase();
-      cards.forEach(card => {
+      cards.forEach(function(card) {
         const hay = (card.innerText + ' ' + (card.dataset.tags || '')).toLowerCase();
         card.style.display = hay.includes(needle) ? '' : 'none';
       });
     };
-    search.addEventListener('input', e => filter(e.target.value));
+    search.addEventListener('input', function(e) {
+      filter(e.target.value);
+    });
   }
 
   // Theme toggle (dark default, persisted)
@@ -48,7 +52,7 @@
   if (themeToggle) {
     const KEY = 'hubbfiscal-theme';
     const root = document.documentElement;
-    const apply = mode => {
+    const apply = function(mode) {
       root.dataset.theme = mode;
       themeToggle.setAttribute('aria-pressed', String(mode === 'light'));
       themeToggle.textContent = mode === 'light' ? 'Dark' : 'Light';
@@ -69,7 +73,7 @@
     };
     const saved = localStorage.getItem(KEY);
     apply(saved === 'light' ? 'light' : 'dark');
-    themeToggle.addEventListener('click', () => {
+    themeToggle.addEventListener('click', function() {
       const next = (root.dataset.theme === 'light') ? 'dark' : 'light';
       apply(next);
     });
@@ -88,31 +92,43 @@ window.HubbTIME = (function () {
 
   // ---- Config ----
   const FLOW_URL = "https://prod-58.usgovtexas.logic.azure.us:443/workflows/ceefc1e6e256421c9a5a83416ff6c167/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=lh1qRrhhVYUZ3ZhxuPpHYJPsdhdMmZDRSDndshkjiB0";
-  const NOTIFY   = ["admin@hubbardstonma.gov", "accountant@hubbardstonma.gov"];
+  const NOTIFY = ["admin@hubbardstonma.gov", "accountant@hubbardstonma.gov"];
 
   // ---- State ----
   let currentEmployee = null;
   let currentWarrant = null;
 
   // ---- Utils ----
-  const $ = s => document.querySelector(s);
-  const currency = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n || 0));
-  const setMsg = (text, type, show) => {
-    const el = $('#systemMsg'); if (!el) return;
-    if (!show) { el.style.display = 'none'; return; }
+  const $ = function(s) { return document.querySelector(s); };
+  const currency = function(n) { 
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD' 
+    }).format(Number(n || 0)); 
+  };
+  const setMsg = function(text, type, show) {
+    const el = $('#systemMsg'); 
+    if (!el) return;
+    if (!show) { 
+      el.style.display = 'none'; 
+      return; 
+    }
     el.className = 'alert ' + (type || 'info');
     el.textContent = text;
     el.style.display = 'block';
   };
-  const timeDiffHours = (start, end) => {
+  const timeDiffHours = function(start, end) {
     if (!start || !end) return 0;
-    const [sh, sm] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
-    let s = sh * 60 + sm, e = eh * 60 + em;
+    const sh = parseInt(start.split(':')[0], 10);
+    const sm = parseInt(start.split(':')[1], 10);
+    const eh = parseInt(end.split(':')[0], 10);
+    const em = parseInt(end.split(':')[1], 10);
+    let s = sh * 60 + sm;
+    let e = eh * 60 + em;
     if (e < s) e += 24 * 60; // overnight
     return Math.round(((e - s) / 60) * 100) / 100;
   };
-  const getWeekIndex = (dateStr) => {
+  const getWeekIndex = function(dateStr) {
     if (!currentWarrant || !dateStr) return 1;
     const start = new Date(currentWarrant.start + 'T00:00:00');
     const d = new Date(dateStr + 'T00:00:00');
@@ -121,19 +137,21 @@ window.HubbTIME = (function () {
   };
 
   // ---- Helper functions for supplemental actions ----
-  const hhmmToMin = (hhmm) => {
+  const hhmmToMin = function(hhmm) {
     if (!hhmm) return null;
-    const [h, m] = hhmm.split(':').map(Number);
+    const parts = hhmm.split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
     return h * 60 + m;
   };
 
-  const minToHHMM = (mins) => {
+  const minToHHMM = function(mins) {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
   };
 
-  const getLastRow = () => {
+  const getLastRow = function() {
     const tbody = document.getElementById('timeBody');
     return tbody ? tbody.lastElementChild : null;
   };
@@ -357,23 +375,29 @@ window.HubbTIME = (function () {
   // ---- Helpers for GL resolution & UI ----
   function getEmployeeGLChoices(emp) {
     if (!emp) return [];
-    const choices = (EMPLOYEE_POSITIONS[emp.name] || []).map(x => ({ label: `${x.title} — ${x.gl}`, value: x.gl }));
+    const choices = (EMPLOYEE_POSITIONS[emp.name] || []).map(function(x) { 
+      return { label: x.title + ' — ' + x.gl, value: x.gl }; 
+    });
 
     const empGL = EMPLOYEE_GLS[emp.name];
-    if (empGL) choices.push({ label: `Employee-specific — ${empGL}`, value: empGL });
+    if (empGL) choices.push({ label: 'Employee-specific — ' + empGL, value: empGL });
 
     if (emp.position && POSITION_GLS[emp.position]) {
       const gl = POSITION_GLS[emp.position];
-      if (!choices.some(c => c.value === gl)) choices.push({ label: `Position (${emp.position}) — ${gl}`, value: gl });
+      if (!choices.some(function(c) { return c.value === gl; })) {
+        choices.push({ label: 'Position (' + emp.position + ') — ' + gl, value: gl });
+      }
     }
 
     const deptGL = DEPT_GLS[emp.department];
-    if (deptGL && !choices.some(c => c.value === deptGL)) {
-      choices.push({ label: `Department (${emp.department}) — ${deptGL}`, value: deptGL });
+    if (deptGL && !choices.some(function(c) { return c.value === deptGL; })) {
+      choices.push({ label: 'Department (' + emp.department + ') — ' + deptGL, value: deptGL });
     }
 
     const seen = new Set();
-    return choices.filter(c => (seen.has(c.value) ? false : seen.add(c.value)));
+    return choices.filter(function(c) { 
+      return seen.has(c.value) ? false : seen.add(c.value); 
+    });
   }
 
   function getDefaultGL(emp) {
@@ -395,7 +419,7 @@ window.HubbTIME = (function () {
     
     if (emp) {
       const choices = getEmployeeGLChoices(emp);
-      choices.forEach(choice => {
+      choices.forEach(function(choice) {
         const option = document.createElement('option');
         option.value = choice.value;
         option.label = choice.label;
@@ -422,19 +446,23 @@ window.HubbTIME = (function () {
       { code: '1000-610-5100-0000', desc: 'Personnel – Library' }
     ];
 
-    const existingValues = new Set(Array.from(dl.querySelectorAll('option')).map(opt => opt.value));
-    townGLCodes.forEach(({ code, desc }) => {
-      if (!existingValues.has(code)) {
+    const existingValues = new Set(Array.from(dl.querySelectorAll('option')).map(function(opt) { 
+      return opt.value; 
+    }));
+    townGLCodes.forEach(function(item) {
+      if (!existingValues.has(item.code)) {
         const option = document.createElement('option');
-        option.value = code;
-        option.label = `${code} — ${desc}`;
+        option.value = item.code;
+        option.label = item.code + ' — ' + item.desc;
         dl.appendChild(option);
       }
     });
   }
 
   // Enhanced GL input creation with multi-position support
-  function createGLInput(initialGL = '', emp = null) {
+  function createGLInput(initialGL, emp) {
+    initialGL = initialGL || '';
+    emp = emp || null;
     const hasMulti = emp && EMPLOYEE_POSITIONS[emp.name] && EMPLOYEE_POSITIONS[emp.name].length;
     
     const glDiv = document.createElement('div');
@@ -453,7 +481,7 @@ window.HubbTIME = (function () {
       const query = this.value.toLowerCase();
       const datalist = document.getElementById('glList');
       if (!datalist) return;
-      Array.from(datalist.options).forEach(option => {
+      Array.from(datalist.options).forEach(function(option) {
         const matches = option.value.toLowerCase().includes(query) || 
                        (option.label && option.label.toLowerCase().includes(query));
         option.style.display = matches ? '' : 'none';
@@ -474,12 +502,12 @@ window.HubbTIME = (function () {
       defaultOption.textContent = '↓ Quick select role';
       glChooser.appendChild(defaultOption);
       
-      EMPLOYEE_POSITIONS[emp.name].forEach(position => {
+      EMPLOYEE_POSITIONS[emp.name].forEach(function(position) {
         const option = document.createElement('option');
         option.value = position.gl;
-        const rateText = position.rate ? ` @ $${position.rate}/hr` : '';
-        const proportionText = position.proportion ? ` (${position.proportion} parts)` : '';
-        option.textContent = `${position.title}${rateText}${proportionText}`;
+        const rateText = position.rate ? ' @ $' + position.rate + '/hr' : '';
+        const proportionText = position.proportion ? ' (' + position.proportion + ' parts)' : '';
+        option.textContent = position.title + rateText + proportionText;
         glChooser.appendChild(option);
       });
       
@@ -499,15 +527,15 @@ window.HubbTIME = (function () {
   function reseedBlankGLs() {
     const rows = Array.from(document.querySelectorAll('#timeBody tr'));
     const def = getDefaultGL(currentEmployee);
-    rows.forEach(r => {
+    rows.forEach(function(r) {
       const glIn = r.querySelector('.gl-input');
       if (glIn && !glIn.value && def) glIn.value = def;
     });
   }
 
   // ---- DOM init ----
-  window.addEventListener('DOMContentLoaded', () => {
-    const showEmployeeDetails = () => {
+  window.addEventListener('DOMContentLoaded', function() {
+    const showEmployeeDetails = function() {
       const details = $('#employeeDetails');
       if (details && currentEmployee) {
         details.style.display = 'block';
@@ -518,7 +546,7 @@ window.HubbTIME = (function () {
     const dl = $('#employeeList');
     if (dl) {
       dl.innerHTML = '';
-      EMPLOYEES.forEach((emp, i) => {
+      EMPLOYEES.forEach(function(emp, i) {
         const o = document.createElement('option');
         o.value = emp.name;
         o.setAttribute('data-index', String(i));
@@ -530,42 +558,46 @@ window.HubbTIME = (function () {
     const wsel = $('#warrant');
     if (wsel) {
       wsel.innerHTML = '<option value="">Select Pay Period…</option>';
-      WARRANTS.forEach((w, i) => {
+      WARRANTS.forEach(function(w, i) {
         const o = document.createElement('option');
         o.value = String(i);
-        o.textContent = `Warrant #${w.number} — ${w.start} to ${w.end} — Due ${w.due}`;
+        o.textContent = 'Warrant #' + w.number + ' — ' + w.start + ' to ' + w.end + ' — Due ' + w.due;
         wsel.appendChild(o);
       });
     }
 
     // Bind events
     const es = $('#employeeSearch');    
-    if (es) es.addEventListener('input', (e) => {
+    if (es) es.addEventListener('input', function(e) {
       handleEmployee(e);
       showEmployeeDetails();
     });
     const ceb = $('#clearEmployeeBtn'); 
-    if (ceb) ceb.addEventListener('click', () => {
+    if (ceb) ceb.addEventListener('click', function() {
       clearEmployee();
       const details = $('#employeeDetails');
       if (details) details.style.display = 'none';
     });
     if (wsel) wsel.addEventListener('change', handleWarrant);
-    const add = $('#addRowBtn');        if (add) add.addEventListener('click', () => addTimeRow());
+    const add = $('#addRowBtn');        if (add) add.addEventListener('click', function() { addTimeRow(); });
     const clr = $('#clearAllBtn');      if (clr) clr.addEventListener('click', clearAllRows);
     const th  = $('#townHallBtn');      if (th)  th.addEventListener('click', addTownHallHours);
-    const form= $('#timesheetForm');    if (form)form.addEventListener('submit', handleSubmit);
+    const form= $('#timesheetForm');    if (form) form.addEventListener('submit', handleSubmit);
 
     // Supplemental action buttons
     const split = $('#splitShiftBtn');  if (split) split.addEventListener('click', addSplitShift);
     const ot    = $('#overtimeBtn');    if (ot)    ot.addEventListener('click', addOvertimeDay);
     const sick  = $('#sickBtn');        if (sick)  sick.addEventListener('click', addSickDay);
     const vac   = $('#vacationBtn');    if (vac)   vac.addEventListener('click', addVacationDay);
-    const pers  = $('#personalBtn');    if (pers)  pers.addEventListener('click', () => addQuickDay('Personal', 'Personal Day', '8.00'));
-    const hol   = $('#holidayBtn');     if (hol)   hol.addEventListener('click', () => addQuickDay('Holiday', 'Holiday', '8.00'));
+    const pers  = $('#personalBtn');    if (pers)  pers.addEventListener('click', function() { 
+      addQuickDay('Personal', 'Personal Day', '8.00'); 
+    });
+    const hol   = $('#holidayBtn');     if (hol)   hol.addEventListener('click', function() { 
+      addQuickDay('Holiday', 'Holiday', '8.00'); 
+    });
 
     // Enter key advances through table fields
-    document.addEventListener('keydown', (ev) => {
+    document.addEventListener('keydown', function(ev) {
       if (ev.key === 'Enter' && ev.target && ev.target.matches && ev.target.matches('#timeBody input, #timeBody select')) {
         ev.preventDefault();
         const fields = Array.from(document.querySelectorAll('#timeBody input, #timeBody select'));
@@ -582,15 +614,19 @@ window.HubbTIME = (function () {
   // ---- Handlers ----
   function handleEmployee(e) {
     const name = (e.target.value || '').trim();
-    const emp = EMPLOYEES.find(x => x.name.toLowerCase() === name.toLowerCase());
+    const emp = EMPLOYEES.find(function(x) { 
+      return x.name.toLowerCase() === name.toLowerCase(); 
+    });
     if (!emp) return;
     currentEmployee = emp;
 
     const idxEl = $('#employeeIndex');
     if (idxEl) idxEl.value = String(EMPLOYEES.indexOf(emp));
-    const dep = $('#department'); if (dep) dep.textContent = emp.department || '—';
-    const pty = $('#payType');    if (pty) pty.textContent = emp.payType ? (emp.payType[0].toUpperCase() + emp.payType.slice(1)) : '—';
-    const rate= $('#rate');
+    const dep = $('#department'); 
+    if (dep) dep.textContent = emp.department || '—';
+    const pty = $('#payType');    
+    if (pty) pty.textContent = emp.payType ? (emp.payType[0].toUpperCase() + emp.payType.slice(1)) : '—';
+    const rate = $('#rate');
     if (rate) {
       rate.textContent = emp.payType === 'salary'
         ? (emp.rate ? (currency(emp.rate) + ' annually') : '—')
@@ -604,18 +640,20 @@ window.HubbTIME = (function () {
     // Show message about multi-position functionality
     if (EMPLOYEE_POSITIONS[emp.name]) {
       const positions = EMPLOYEE_POSITIONS[emp.name];
-      const positionText = positions.map(p => `${p.title} (${p.proportion} parts)`).join(' & ');
-      setMsg(`${emp.name} has multiple positions: ${positionText}. Quick day buttons will auto-split hours.`, 'info', true);
+      const positionText = positions.map(function(p) { 
+        return p.title + ' (' + p.proportion + ' parts)'; 
+      }).join(' & ');
+      setMsg(emp.name + ' has multiple positions: ' + positionText + '. Quick day buttons will auto-split hours.', 'info', true);
     }
   }
 
   function clearEmployee() {
     currentEmployee = null;
-    ['employeeIndex','employeeSearch'].forEach(id => { 
+    ['employeeIndex','employeeSearch'].forEach(function(id) { 
       const el = document.getElementById(id); 
       if (el) el.value = ''; 
     });
-    ['department','payType','rate'].forEach(id => {
+    ['department','payType','rate'].forEach(function(id) {
       const el = document.getElementById(id);
       if (el) el.textContent = '—';
     });
@@ -643,28 +681,28 @@ window.HubbTIME = (function () {
     const tr = document.createElement('tr');
     
     tr.innerHTML =
-      `<td><input type="date" class="date-cell input" value="${date || ''}"></td>
-       <td><input type="time" class="time-start input" value="${start || ''}"></td>
-       <td><input type="time" class="time-end input" value="${end || ''}"></td>
-       <td><input type="number" step="0.25" min="0" placeholder="0.00" class="time-hours input" value="${hours || ''}"></td>
-       <td>
-         <select class="time-type input">
-           <option${type==='Regular'?' selected':''}>Regular</option>
-           <option${type==='Sick'?' selected':''}>Sick</option>
-           <option${type==='Personal'?' selected':''}>Personal</option>
-           <option${type==='Vacation'?' selected':''}>Vacation</option>
-           <option${type==='Holiday'?' selected':''}>Holiday</option>
-         </select>
-       </td>
-       <td></td>
-       <td><input type="text" class="input" placeholder="Describe work or leave" value="${description || ''}"></td>
-       <td>
-         <div style="display:flex; gap:4px; flex-wrap:wrap;">
-           <button type="button" class="btn secondary insert-above" style="font-size:12px; padding:2px 6px;">↑ Above</button>
-           <button type="button" class="btn secondary insert-below" style="font-size:12px; padding:2px 6px;">↓ Below</button>
-           <button type="button" class="btn danger remove-row" style="font-size:12px; padding:2px 6px;">Remove</button>
-         </div>
-       </td>`;
+      '<td><input type="date" class="date-cell input" value="' + (date || '') + '"></td>' +
+      '<td><input type="time" class="time-start input" value="' + (start || '') + '"></td>' +
+      '<td><input type="time" class="time-end input" value="' + (end || '') + '"></td>' +
+      '<td><input type="number" step="0.25" min="0" placeholder="0.00" class="time-hours input" value="' + (hours || '') + '"></td>' +
+      '<td>' +
+        '<select class="time-type input">' +
+          '<option' + (type==='Regular'?' selected':'') + '>Regular</option>' +
+          '<option' + (type==='Sick'?' selected':'') + '>Sick</option>' +
+          '<option' + (type==='Personal'?' selected':'') + '>Personal</option>' +
+          '<option' + (type==='Vacation'?' selected':'') + '>Vacation</option>' +
+          '<option' + (type==='Holiday'?' selected':'') + '>Holiday</option>' +
+        '</select>' +
+      '</td>' +
+      '<td></td>' +
+      '<td><input type="text" class="input" placeholder="Describe work or leave" value="' + (description || '') + '"></td>' +
+      '<td>' +
+        '<div style="display:flex; gap:4px; flex-wrap:wrap;">' +
+          '<button type="button" class="btn secondary insert-above" style="font-size:12px; padding:2px 6px;">↑ Above</button>' +
+          '<button type="button" class="btn secondary insert-below" style="font-size:12px; padding:2px 6px;">↓ Below</button>' +
+          '<button type="button" class="btn danger remove-row" style="font-size:12px; padding:2px 6px;">Remove</button>' +
+        '</div>' +
+      '</td>';
 
     // Insert the custom GL cell with multi-position support
     const glCell = tr.children[5]; // 6th cell (0-indexed)
@@ -683,16 +721,16 @@ window.HubbTIME = (function () {
 
   // Helper function to wire events for dynamically created rows
   function wireRowEvents(tr) {
-    tr.querySelector('.remove-row').addEventListener('click', () => { 
+    tr.querySelector('.remove-row').addEventListener('click', function() { 
       tr.remove(); 
       calculateTotals(); 
     });
 
-    tr.querySelector('.insert-above').addEventListener('click', () => {
+    tr.querySelector('.insert-above').addEventListener('click', function() {
       const newRow = document.createElement('tr');
       newRow.innerHTML = tr.innerHTML;
       
-      newRow.querySelectorAll('input').forEach(input => {
+      newRow.querySelectorAll('input').forEach(function(input) {
         if (input.type === 'date') {
           input.value = tr.querySelector('.date-cell').value;
         } else if (input.classList.contains('gl-input')) {
@@ -701,7 +739,7 @@ window.HubbTIME = (function () {
           input.value = '';
         }
       });
-      newRow.querySelectorAll('select').forEach(select => {
+      newRow.querySelectorAll('select').forEach(function(select) {
         if (select.classList.contains('time-type')) {
           select.value = tr.querySelector('.time-type').value;
         } else {
@@ -719,11 +757,11 @@ window.HubbTIME = (function () {
       calculateTotals();
     });
 
-    tr.querySelector('.insert-below').addEventListener('click', () => {
+    tr.querySelector('.insert-below').addEventListener('click', function() {
       const newRow = document.createElement('tr');
       newRow.innerHTML = tr.innerHTML;
       
-      newRow.querySelectorAll('input').forEach(input => {
+      newRow.querySelectorAll('input').forEach(function(input) {
         if (input.type === 'date') {
           input.value = tr.querySelector('.date-cell').value;
         } else if (input.classList.contains('gl-input')) {
@@ -732,7 +770,7 @@ window.HubbTIME = (function () {
           input.value = '';
         }
       });
-      newRow.querySelectorAll('select').forEach(select => {
+      newRow.querySelectorAll('select').forEach(function(select) {
         if (select.classList.contains('time-type')) {
           select.value = tr.querySelector('.time-type').value;
         } else {
@@ -750,12 +788,12 @@ window.HubbTIME = (function () {
       calculateTotals();
     });
     
-    tr.querySelectorAll('input, select').forEach(inp => {
-      inp.addEventListener('input', function () {
-        const rowType = tr.querySelector('.time-type')?.value || 'Regular';
+    tr.querySelectorAll('input, select').forEach(function(inp) {
+      inp.addEventListener('input', function() {
+        const rowType = tr.querySelector('.time-type').value || 'Regular';
         if ((this.classList.contains('time-start') || this.classList.contains('time-end')) && rowType === 'Regular') {
-          const s = tr.querySelector('.time-start')?.value || '';
-          const e = tr.querySelector('.time-end')?.value || '';
+          const s = tr.querySelector('.time-start').value || '';
+          const e = tr.querySelector('.time-end').value || '';
           if (s && e) tr.querySelector('.time-hours').value = timeDiffHours(s, e).toFixed(2);
         }
         calculateTotals();
@@ -783,7 +821,7 @@ window.HubbTIME = (function () {
     const endInput = lastRow.querySelector('.time-end');
     const glInput = lastRow.querySelector('.gl-input');
     const typeSelect = lastRow.querySelector('.time-type');
-    const descInput = lastRow.children[6]?.querySelector('input');
+    const descInput = lastRow.children[6] ? lastRow.children[6].querySelector('input') : null;
     
     if (!dateInput || !startInput || !endInput) {
       setMsg('Could not find required fields in the last row.', 'error', true);
@@ -810,7 +848,7 @@ window.HubbTIME = (function () {
     const s = hhmmToMin(start);
     const e = hhmmToMin(end);
     
-    if (s == null || e == null || e <= s) {
+    if (s === null || e === null || e <= s) {
       setMsg('Invalid time range. End time must be after start time.', 'error', true);
       return;
     }
@@ -822,14 +860,15 @@ window.HubbTIME = (function () {
     lastRow.remove();
 
     // Add two new split rows
-    addTimeRowWith(date, start, midTime, '', 'Regular', gl, `${desc} (Split 1/2)`.trim());
-    addTimeRowWith(date, midTime, end, '', 'Regular', gl, `${desc} (Split 2/2)`.trim());
+    addTimeRowWith(date, start, midTime, '', 'Regular', gl, (desc + ' (Split 1/2)').trim());
+    addTimeRowWith(date, midTime, end, '', 'Regular', gl, (desc + ' (Split 2/2)').trim());
 
     calculateTotals();
-    setMsg(`Shift split successfully: ${start}-${midTime} and ${midTime}-${end}`, 'success', true);
+    setMsg('Shift split successfully: ' + start + '-' + midTime + ' and ' + midTime + '-' + end, 'success', true);
   }
 
-  function addQuickDay(kind, label, defaultHours = '8.00') {
+  function addQuickDay(kind, label, defaultHours) {
+    defaultHours = defaultHours || '8.00';
     if (!currentEmployee) {
       setMsg('Please select an employee first.', 'error', true);
       return;
@@ -839,23 +878,26 @@ window.HubbTIME = (function () {
     // Auto-split hours for multi-position employees based on their weekly proportions
     if (EMPLOYEE_POSITIONS[currentEmployee.name]) {
       const positions = EMPLOYEE_POSITIONS[currentEmployee.name];
-      const totalParts = positions.reduce((sum, pos) => sum + pos.proportion, 0);
+      const totalParts = positions.reduce(function(sum, pos) { return sum + pos.proportion; }, 0);
       const totalHours = parseFloat(defaultHours);
       
-      positions.forEach((position) => {
+      positions.forEach(function(position) {
         const proportionalHours = (totalHours * position.proportion / totalParts).toFixed(2);
-        const positionLabel = `${label} (${position.title})`;
+        const positionLabel = label + ' (' + position.title + ')';
         addTimeRowWith(today, '', '', proportionalHours, kind, position.gl, positionLabel);
       });
       
       calculateTotals();
-      setMsg(`${label} split: ${positions.map(p => `${(parseFloat(defaultHours) * p.proportion / totalParts).toFixed(2)}h ${p.title}`).join(' + ')}`, 'success', true);
+      const splitMsg = positions.map(function(p) {
+        return (parseFloat(defaultHours) * p.proportion / totalParts).toFixed(2) + 'h ' + p.title;
+      }).join(' + ');
+      setMsg(label + ' split: ' + splitMsg, 'success', true);
     } else {
       // Regular single-position employee
       const gl = getDefaultGL(currentEmployee);
       addTimeRowWith(today, '', '', defaultHours, kind, gl, label);
       calculateTotals();
-      setMsg(`${label} added successfully.`, 'success', true);
+      setMsg(label + ' added successfully.', 'success', true);
     }
   }
 
@@ -875,7 +917,7 @@ window.HubbTIME = (function () {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const hoursInput = row.querySelector('.time-hours');
-      const rowHours = parseFloat(hoursInput?.value || 0);
+      const rowHours = parseFloat(hoursInput ? hoursInput.value || 0 : 0);
       
       if (rowHours <= 0) continue;
       
@@ -900,9 +942,10 @@ window.HubbTIME = (function () {
         }
       } else {
         // Row exceeds remaining hours, need to split this day
-        const date = row.querySelector('.date-cell')?.value || '';
-        const type = row.querySelector('.time-type')?.value || 'Regular';
-        const desc = row.children[6]?.querySelector('input')?.value || '';
+        const date = row.querySelector('.date-cell') ? row.querySelector('.date-cell').value || '' : '';
+        const type = row.querySelector('.time-type') ? row.querySelector('.time-type').value || 'Regular' : 'Regular';
+        const descInput = row.children[6] ? row.children[6].querySelector('input') : null;
+        const desc = descInput ? descInput.value || '' : '';
         
         // Modify current row: exact remaining hours for current target
         const glInput = row.querySelector('.gl-input');
@@ -978,30 +1021,33 @@ window.HubbTIME = (function () {
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const dow = d.getDay();
       if (schedule[dow]) {
-        const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const iso = year + '-' + month + '-' + day;
         addTimeRowWith(iso, schedule[dow].start, schedule[dow].end, '', 'Regular', getDefaultGL(currentEmployee), 'Town Hall hours');
       }
     }
     calculateTotals();
-    setMsg(`Town Hall hours template applied for ${currentWarrant.start} to ${currentWarrant.end} (M/W/Th 8-4, Tu 8-6).`, "success", true);
+    setMsg('Town Hall hours template applied for ' + currentWarrant.start + ' to ' + currentWarrant.end + ' (M/W/Th 8-4, Tu 8-6).', "success", true);
 
     // Auto-allocation for specific employees
     if (currentEmployee && AUTO_SPLITS[currentEmployee.name]) {
       const splitConfig = AUTO_SPLITS[currentEmployee.name];
       const allRows = Array.from(document.querySelectorAll('#timeBody tr'));
-      const regularRows = allRows.filter(row => {
-        const type = row.querySelector('.time-type')?.value || 'Regular';
+      const regularRows = allRows.filter(function(row) {
+        const type = row.querySelector('.time-type') ? row.querySelector('.time-type').value || 'Regular' : 'Regular';
         return type === 'Regular';
       });
       
       if (splitConfig.mode === "weekly") {
         // Patricia: Apply targets separately to each week
-        const week1Rows = regularRows.filter(row => {
-          const date = row.querySelector('.date-cell')?.value || '';
+        const week1Rows = regularRows.filter(function(row) {
+          const date = row.querySelector('.date-cell') ? row.querySelector('.date-cell').value || '' : '';
           return getWeekIndex(date) === 1;
         });
-        const week2Rows = regularRows.filter(row => {
-          const date = row.querySelector('.date-cell')?.value || '';
+        const week2Rows = regularRows.filter(function(row) {
+          const date = row.querySelector('.date-cell') ? row.querySelector('.date-cell').value || '' : '';
           return getWeekIndex(date) === 2;
         });
         
@@ -1013,8 +1059,11 @@ window.HubbTIME = (function () {
       }
       
       calculateTotals();
-      const targetSummary = splitConfig.targets.map(t => `${t.hours}h ${t.label}`).join(' + ');
-      setMsg(`Town Hall hours allocated for ${currentEmployee.name}: ${targetSummary} ${splitConfig.mode === 'weekly' ? 'per week' : 'total'}.`, "success", true);
+      const targetSummary = splitConfig.targets.map(function(t) { 
+        return t.hours + 'h ' + t.label; 
+      }).join(' + ');
+      const modeSuffix = splitConfig.mode === 'weekly' ? 'per week' : 'total';
+      setMsg('Town Hall hours allocated for ' + currentEmployee.name + ': ' + targetSummary + ' ' + modeSuffix + '.', "success", true);
     }
   }
 
@@ -1023,10 +1072,13 @@ window.HubbTIME = (function () {
     const glBreakdown = {};
     const rows = Array.from(document.querySelectorAll('#timeBody tr'));
     
-    rows.forEach(row => {
-      const hours = parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
-      const type = row.querySelector('.time-type')?.value || 'Regular';
-      const gl = row.querySelector('.gl-input')?.value || '';
+    rows.forEach(function(row) {
+      const hoursInput = row.querySelector('.time-hours');
+      const hours = parseFloat(hoursInput ? hoursInput.value || 0 : 0) || 0;
+      const typeSelect = row.querySelector('.time-type');
+      const type = typeSelect ? typeSelect.value || 'Regular' : 'Regular';
+      const glInput = row.querySelector('.gl-input');
+      const gl = glInput ? glInput.value || '' : '';
       
       if (hours > 0 && gl) {
         if (!glBreakdown[gl]) {
@@ -1041,80 +1093,84 @@ window.HubbTIME = (function () {
     if (!reviewWrap) return;
 
     if (Object.keys(glBreakdown).length === 0) {
-      reviewWrap.innerHTML = `
-        <p class="text-center text-muted" style="padding:var(--space-xl);">
-          Enter time entries above to see GL code breakdown and cost allocation
-        </p>`;
+      reviewWrap.innerHTML = 
+        '<p class="text-center text-muted" style="padding:var(--space-xl);">' +
+          'Enter time entries above to see GL code breakdown and cost allocation' +
+        '</p>';
       return;
     }
 
     let costCalculation = '';
     if (currentEmployee && currentEmployee.rate) {
       costCalculation = currentEmployee.payType === 'hourly' 
-        ? `<th>Regular Cost</th><th>Overtime Cost</th><th>Leave Cost</th><th>Total Cost</th>`
-        : `<th>Salary Allocation</th>`;
+        ? '<th>Regular Cost</th><th>Overtime Cost</th><th>Leave Cost</th><th>Total Cost</th>'
+        : '<th>Salary Allocation</th>';
     }
 
-    let tableHTML = `
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>GL Code</th>
-              <th>Regular</th>
-              <th>Sick</th>
-              <th>Personal</th>
-              <th>Vacation</th>
-              <th>Holiday</th>
-              <th>Total Hours</th>
-              ${costCalculation}
-            </tr>
-          </thead>
-          <tbody>`;
+    let tableHTML = 
+      '<div class="tableWrap">' +
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>GL Code</th>' +
+              '<th>Regular</th>' +
+              '<th>Sick</th>' +
+              '<th>Personal</th>' +
+              '<th>Vacation</th>' +
+              '<th>Holiday</th>' +
+              '<th>Total Hours</th>' +
+              costCalculation +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>';
 
-    Object.entries(glBreakdown).forEach(([gl, breakdown]) => {
+    Object.entries(glBreakdown).forEach(function(entry) {
+      const gl = entry[0];
+      const breakdown = entry[1];
       let costCells = '';
       if (currentEmployee && currentEmployee.rate) {
         if (currentEmployee.payType === 'hourly') {
           let rate = currentEmployee.rate;
           // Check for position-specific rates (Patricia Lowe has different rates for different roles)
           if (currentEmployee.name && EMPLOYEE_POSITIONS[currentEmployee.name]) {
-            const position = EMPLOYEE_POSITIONS[currentEmployee.name].find(pos => pos.gl === gl && pos.rate);
+            const position = EMPLOYEE_POSITIONS[currentEmployee.name].find(function(pos) { 
+              return pos.gl === gl && pos.rate; 
+            });
             if (position) rate = position.rate;
           }
           const regularCost = breakdown.regular * rate;
           const overtimeCost = 0; // requires weekly split per GL to be exact
           const leaveCost = (breakdown.sick + breakdown.personal + breakdown.vacation + breakdown.holiday) * rate;
           const totalCost = regularCost + overtimeCost + leaveCost;
-          costCells = `
-            <td>${currency(regularCost)}</td>
-            <td>${currency(overtimeCost)}</td>
-            <td>${currency(leaveCost)}</td>
-            <td><strong>${currency(totalCost)}</strong></td>`;
+          costCells = 
+            '<td>' + currency(regularCost) + '</td>' +
+            '<td>' + currency(overtimeCost) + '</td>' +
+            '<td>' + currency(leaveCost) + '</td>' +
+            '<td><strong>' + currency(totalCost) + '</strong></td>';
         } else {
-          const totalHours = Object.values(glBreakdown).reduce((sum, b) => sum + b.total, 0);
+          const totalHours = Object.values(glBreakdown).reduce(function(sum, b) { return sum + b.total; }, 0);
           const allocation = totalHours > 0 ? (breakdown.total / totalHours) * (currentEmployee.rate / 26) : 0;
-          costCells = `<td><strong>${currency(allocation)}</strong></td>`;
+          costCells = '<td><strong>' + currency(allocation) + '</strong></td>';
         }
       }
 
-      tableHTML += `
-        <tr>
-          <td><strong>${gl}</strong></td>
-          <td>${breakdown.regular.toFixed(2)}</td>
-          <td>${breakdown.sick.toFixed(2)}</td>
-          <td>${breakdown.personal.toFixed(2)}</td>
-          <td>${breakdown.vacation.toFixed(2)}</td>
-          <td>${breakdown.holiday.toFixed(2)}</td>
-          <td><strong>${breakdown.total.toFixed(2)}</strong></td>
-          ${costCells}
-        </tr>`;
+      tableHTML += 
+        '<tr>' +
+          '<td><strong>' + gl + '</strong></td>' +
+          '<td>' + breakdown.regular.toFixed(2) + '</td>' +
+          '<td>' + breakdown.sick.toFixed(2) + '</td>' +
+          '<td>' + breakdown.personal.toFixed(2) + '</td>' +
+          '<td>' + breakdown.vacation.toFixed(2) + '</td>' +
+          '<td>' + breakdown.holiday.toFixed(2) + '</td>' +
+          '<td><strong>' + breakdown.total.toFixed(2) + '</strong></td>' +
+          costCells +
+        '</tr>';
     });
 
-    tableHTML += `
-          </tbody>
-        </table>
-      </div>`;
+    tableHTML += 
+          '</tbody>' +
+        '</table>' +
+      '</div>';
 
     reviewWrap.innerHTML = tableHTML;
   }
@@ -1125,10 +1181,13 @@ window.HubbTIME = (function () {
     let w1Reg = 0, w2Reg = 0;
 
     const rows = Array.from(document.querySelectorAll('#timeBody tr'));
-    rows.forEach(row => {
-      const date = row.querySelector('.date-cell')?.value || '';
-      const hours = parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
-      const type = row.querySelector('.time-type')?.value || 'Regular';
+    rows.forEach(function(row) {
+      const dateInput = row.querySelector('.date-cell');
+      const date = dateInput ? dateInput.value || '' : '';
+      const hoursInput = row.querySelector('.time-hours');
+      const hours = parseFloat(hoursInput ? hoursInput.value || 0 : 0) || 0;
+      const typeSelect = row.querySelector('.time-type');
+      const type = typeSelect ? typeSelect.value || 'Regular' : 'Regular';
       if (!hours) return;
       totalHours += hours;
       if (type === 'Regular') {
@@ -1151,7 +1210,10 @@ window.HubbTIME = (function () {
       regPayable = Math.max(0, reg - overtime);
     }
 
-    const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v.toFixed(2); };
+    const setTxt = function(id, v) { 
+      const el = document.getElementById(id); 
+      if (el) el.textContent = v.toFixed(2); 
+    };
     setTxt('totalHours', totalHours);
     setTxt('sumRegular', regPayable);
     setTxt('sumSick', sick);
@@ -1164,16 +1226,21 @@ window.HubbTIME = (function () {
     if (currentEmployee && currentEmployee.rate) {
       if (currentEmployee.payType === 'hourly') {
         const hasPositionRates = currentEmployee.name && EMPLOYEE_POSITIONS[currentEmployee.name] && 
-                                EMPLOYEE_POSITIONS[currentEmployee.name].some(pos => pos.rate);
+                                EMPLOYEE_POSITIONS[currentEmployee.name].some(function(pos) { return pos.rate; });
         if (hasPositionRates) {
           // Calculate pay per GL code with position-specific rates (Patricia Lowe)
           let totalPay = 0;
-          rows.forEach(row => {
-            const hours = parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
-            const type = row.querySelector('.time-type')?.value || 'Regular';
-            const gl = row.querySelector('.gl-input')?.value || '';
+          rows.forEach(function(row) {
+            const hoursInput = row.querySelector('.time-hours');
+            const hours = parseFloat(hoursInput ? hoursInput.value || 0 : 0) || 0;
+            const typeSelect = row.querySelector('.time-type');
+            const type = typeSelect ? typeSelect.value || 'Regular' : 'Regular';
+            const glInput = row.querySelector('.gl-input');
+            const gl = glInput ? glInput.value || '' : '';
             if (hours > 0) {
-              const position = EMPLOYEE_POSITIONS[currentEmployee.name].find(pos => pos.gl === gl);
+              const position = EMPLOYEE_POSITIONS[currentEmployee.name].find(function(pos) { 
+                return pos.gl === gl; 
+              });
               const rate = position && position.rate ? position.rate : currentEmployee.rate;
               totalPay += hours * rate; // (OT not split per-GL in this simple model)
             }
@@ -1197,36 +1264,43 @@ window.HubbTIME = (function () {
   }
 
   // ---- Submit ----
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
     if (!currentEmployee) { setMsg("Please select an employee.", "error", true); return; }
     if (!currentWarrant)  { setMsg("Please select a pay period.", "error", true); return; }
 
     const entries = [];
     const rows = Array.from(document.querySelectorAll('#timeBody tr'));
-    rows.forEach(row => {
-      const date = row.querySelector('.date-cell')?.value || '';
-      const start= row.querySelector('.time-start')?.value || '';
-      const end  = row.querySelector('.time-end')?.value || '';
-      const hours= parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
-      const type = row.querySelector('.time-type')?.value || 'Regular';
-      const gl   = row.querySelector('.gl-input')?.value || '';
-      const desc = row.children[6]?.querySelector('input')?.value || '';
+    rows.forEach(function(row) {
+      const dateInput = row.querySelector('.date-cell');
+      const date = dateInput ? dateInput.value || '' : '';
+      const startInput = row.querySelector('.time-start');
+      const start = startInput ? startInput.value || '' : '';
+      const endInput = row.querySelector('.time-end');
+      const end = endInput ? endInput.value || '' : '';
+      const hoursInput = row.querySelector('.time-hours');
+      const hours = parseFloat(hoursInput ? hoursInput.value || 0 : 0) || 0;
+      const typeSelect = row.querySelector('.time-type');
+      const type = typeSelect ? typeSelect.value || 'Regular' : 'Regular';
+      const glInput = row.querySelector('.gl-input');
+      const gl = glInput ? glInput.value || '' : '';
+      const descInput = row.children[6] ? row.children[6].querySelector('input') : null;
+      const desc = descInput ? descInput.value || '' : '';
       if (date && hours > 0) {
-        entries.push({ date, start, end, hours, type, gl, description: desc });
+        entries.push({ date: date, start: start, end: end, hours: hours, type: type, gl: gl, description: desc });
       }
     });
 
     if (!entries.length) { setMsg("Add at least one time entry.", "error", true); return; }
 
     const totals = {
-      totalHours: parseFloat(document.getElementById('totalHours')?.textContent || 0),
-      regularHours: parseFloat(document.getElementById('sumRegular')?.textContent || 0),
-      sickHours: parseFloat(document.getElementById('sumSick')?.textContent || 0),
-      personalHours: parseFloat(document.getElementById('sumPersonal')?.textContent || 0),
-      vacationHours: parseFloat(document.getElementById('sumVacation')?.textContent || 0),
-      holidayHours: parseFloat(document.getElementById('sumHoliday')?.textContent || 0),
-      grossPay: document.getElementById('grossPay')?.textContent || "$0.00"
+      totalHours: parseFloat(document.getElementById('totalHours') ? document.getElementById('totalHours').textContent || 0 : 0),
+      regularHours: parseFloat(document.getElementById('sumRegular') ? document.getElementById('sumRegular').textContent || 0 : 0),
+      sickHours: parseFloat(document.getElementById('sumSick') ? document.getElementById('sumSick').textContent || 0 : 0),
+      personalHours: parseFloat(document.getElementById('sumPersonal') ? document.getElementById('sumPersonal').textContent || 0 : 0),
+      vacationHours: parseFloat(document.getElementById('sumVacation') ? document.getElementById('sumVacation').textContent || 0 : 0),
+      holidayHours: parseFloat(document.getElementById('sumHoliday') ? document.getElementById('sumHoliday').textContent || 0 : 0),
+      grossPay: document.getElementById('grossPay') ? document.getElementById('grossPay').textContent || "$0.00" : "$0.00"
     };
 
     const payload = {
@@ -1243,32 +1317,42 @@ window.HubbTIME = (function () {
         position: currentEmployee.position || null
       },
       warrant: currentWarrant,
-      entries,
-      totals
+      entries: entries,
+      totals: totals
     };
 
     const btn = document.getElementById('submitBtn');
     const status = document.getElementById('submitStatus');
+    
+    function cleanup() {
+      if (btn) btn.disabled = false;
+    }
+    
     try {
       if (btn) btn.disabled = true;
       if (status) status.textContent = 'Sending to payroll…';
       setMsg('Submitting timesheet…', 'info', true);
 
-      const res = await fetch(FLOW_URL, {
+      fetch(FLOW_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
+      }).then(function(res) {
+        if (!res.ok) throw new Error('Submission failed with status ' + res.status);
+        setMsg('Timesheet submitted successfully.', 'success', true);
+        if (status) status.textContent = 'Submitted ✔';
+        cleanup();
+      }).catch(function(err) {
+        console.error(err);
+        setMsg('Error submitting timesheet: ' + err.message, 'error', true);
+        if (status) status.textContent = 'There was a problem submitting. Please try again.';
+        cleanup();
       });
-      if (!res.ok) throw new Error('Submission failed with status ' + res.status);
-
-      setMsg('Timesheet submitted successfully.', 'success', true);
-      if (status) status.textContent = 'Submitted ✔';
     } catch (err) {
       console.error(err);
       setMsg('Error submitting timesheet: ' + err.message, 'error', true);
       if (status) status.textContent = 'There was a problem submitting. Please try again.';
-    } finally {
-      if (btn) btn.disabled = false;
+      cleanup();
     }
   }
 
@@ -1277,14 +1361,14 @@ window.HubbTIME = (function () {
   api.addRowWith = addTimeRowWith;
   api.recalc = calculateTotals;
   api.defaultGL = getDefaultGL;
-  api.getCurrentEmployee = () => currentEmployee;
+  api.getCurrentEmployee = function() { return currentEmployee; };
   api.addTownHallHours = addTownHallHours;
   api.addSplitShift = addSplitShift;
   api.addOvertimeDay = addOvertimeDay;
   api.addSickDay = addSickDay;
   api.addVacationDay = addVacationDay;
   api.updateGLReview = updateGLReview;
-  api.removeEntry = (entryId) => { 
+  api.removeEntry = function(entryId) { 
     // For compatibility with supplemental scripts - remove by row if needed
     const rows = Array.from(document.querySelectorAll('#timeBody tr'));
     if (entryId && rows[entryId]) {
