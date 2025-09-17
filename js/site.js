@@ -262,116 +262,7 @@ window.HubbTIME = (function () {
     { number: 8, start: "2025-10-05", end: "2025-10-18", due: "2025-10-20", check: "2025-10-23" }
   ];
 
-  /* =========================================================
-     Personnel GL Directory + Helpers
-     ========================================================= */
-
-  // All Municipal Personnel GL Accounts (searchable)
-  const ALL_PERSONNEL_GLS = [
-    // General Government
-    { code: "01-5100-5110", desc: "Town Administrator" },
-    { code: "01-5100-5120", desc: "Town Accountant" },
-    { code: "01-5100-5130", desc: "Treasurer/Collector" },
-    { code: "01-5100-5140", desc: "Select Board" },
-    { code: "01-5100-5150", desc: "Town Clerk" },
-    { code: "01-5100-5160", desc: "Assessors/Land Use" },
-    { code: "01-5100-5170", desc: "Facilities / Building & Grounds" },
-    { code: "01-5100-5180", desc: "Technology/IT" },
-    { code: "01-5100-5190", desc: "General Administration" },
-    // Communications
-    { code: "01-1550-5100", desc: "IT / Communications" },
-    { code: "01-1551-5100", desc: "Cable / PEG Access" },
-    // Elections
-    { code: "01-162A-5100", desc: "Elections" },
-    // Public Safety - Police
-    { code: "01-2100-5100", desc: "Police Department" },
-    { code: "01-2100-5110", desc: "Police Chief" },
-    { code: "01-2100-5120", desc: "Police Officers" },
-    { code: "01-2100-5130", desc: "Police Administrative" },
-    { code: "01-2100-5140", desc: "Police Overtime" },
-    { code: "01-2100-5150", desc: "Police Details" },
-    // Public Safety - Fire
-    { code: "01-2200-5100", desc: "Fire Department" },
-    { code: "01-2200-5110", desc: "Fire Chief" },
-    { code: "01-2200-5120", desc: "Full-Time Firefighters" },
-    { code: "01-2200-5130", desc: "Call Firefighters" },
-    { code: "01-2200-5140", desc: "Fire Overtime" },
-    { code: "01-2200-5150", desc: "EMT/Paramedic" },
-    // Building & Inspections
-    { code: "01-2410-5100", desc: "Building Commissioner" },
-    { code: "01-2410-5110", desc: "Building Inspector" },
-    { code: "01-2410-5120", desc: "Plumbing Inspector" },
-    { code: "01-2410-5130", desc: "Electrical Inspector" },
-    { code: "01-2410-5140", desc: "Gas Inspector" },
-    // Education (Regional Assessment)
-    { code: "01-3000-5100", desc: "School / Regional Assessment" },
-    { code: "01-3001-5100", desc: "School Debt/Capital" },
-    { code: "01-3002-5100", desc: "School Transportation" },
-    // Public Works
-    { code: "01-4200-5100", desc: "Public Works Department" },
-    { code: "01-4200-5110", desc: "DPW Director" },
-    { code: "01-4200-5120", desc: "DPW Workers" },
-    { code: "01-4200-5130", desc: "DPW Seasonal" },
-    { code: "01-4200-5140", desc: "DPW Administrative" },
-    { code: "01-4200-5150", desc: "DPW Overtime" },
-    // Highway Department
-    { code: "01-4220-5100", desc: "Highway Department" },
-    { code: "01-4220-5110", desc: "Highway Superintendent" },
-    { code: "01-4220-5120", desc: "Highway Workers" },
-    { code: "01-4220-5130", desc: "Highway Overtime" },
-    // Snow & Ice
-    { code: "01-4230-5100", desc: "Snow & Ice Removal" },
-    { code: "01-4230-5110", desc: "Snow Overtime" },
-    { code: "01-4230-5120", desc: "Snow Contractors" },
-    // Transfer Station
-    { code: "01-4330-5100", desc: "Transfer Station" },
-    { code: "01-4330-5110", desc: "Transfer Station Attendant" },
-    // Board of Health
-    { code: "01-5120-5100", desc: "Board of Health" },
-    { code: "01-5120-5110", desc: "Health Agent" },
-    { code: "01-5120-5120", desc: "Health Inspector" },
-    { code: "01-5120-5130", desc: "Health Administrative" },
-    // Council on Aging
-    { code: "01-5410-5100", desc: "Senior Center / COA" },
-    { code: "01-5410-5110", desc: "COA Director" },
-    { code: "01-5410-5120", desc: "COA Coordinator" },
-    { code: "01-5410-5130", desc: "COA Driver" },
-    { code: "01-5411-5100", desc: "Senior Center / COA (Grant)" },
-    // Veterans Services
-    { code: "01-5430-5100", desc: "Veterans Services" },
-    { code: "01-5430-5110", desc: "Veterans Agent" },
-    // Library
-    { code: "01-6100-5100", desc: "Library" },
-    { code: "01-6100-5110", desc: "Library Director" },
-    { code: "01-6100-5120", desc: "Library Assistant" },
-    { code: "01-6100-5130", desc: "Library Aide" },
-    // Recreation
-    { code: "01-6300-5100", desc: "Recreation" },
-    { code: "01-6301-5100", desc: "Recreation (Grant)" },
-    { code: "01-6300-5110", desc: "Recreation Director" },
-    { code: "01-6300-5120", desc: "Recreation Coordinator" },
-    // Cemetery
-    { code: "01-4950-5100", desc: "Cemetery" },
-    { code: "01-4950-5110", desc: "Cemetery Superintendent" },
-    { code: "01-4950-5120", desc: "Cemetery Workers" },
-    // Conservation
-    { code: "01-1710-5100", desc: "Conservation Commission" },
-    { code: "01-1710-5110", desc: "Conservation Agent" },
-    // Planning Board
-    { code: "01-1750-5100", desc: "Planning Board" },
-    { code: "01-1750-5110", desc: "Town Planner" },
-    // Zoning Board
-    { code: "01-1760-5100", desc: "Zoning Board of Appeals" },
-    // Historical Commission
-    { code: "01-6920-5100", desc: "Historical Commission" },
-    // Economic Development
-    { code: "01-6950-5100", desc: "Economic Development" },
-    // Emergency Management
-    { code: "01-2920-5100", desc: "Emergency Management" },
-    { code: "01-2920-5110", desc: "Emergency Management Director" }
-  ];
-
-  // Department-level Personnel GLs (for defaults)
+  // ---- Department-level Personnel GLs (for defaults) ----
   const DEPT_GLS = {
     "Administration": "1000-129-5100-0000",
     "Accounting": "1000-129-5100-0000",
@@ -433,20 +324,34 @@ window.HubbTIME = (function () {
   // Employee-specific overrides
   const EMPLOYEE_GLS = {};
 
-  // Multi-position choices per employee
+  // Multi-position choices per employee (Patricia: 26 town/10 library, LeeAnn: 37 land use/31 assessor)
   const EMPLOYEE_POSITIONS = {
     "PATRICIA LOWE": [
-      { title: "Executive Assistant (Select Board)", gl: "1000-122-5100-0000", rate: 23.38 },
-      { title: "Library Assistant", gl: "1000-610-5100-0000", rate: 17.57 }
-    ],
-    "NANCY PERRON": [
-      { title: "Police Administrative Assistant", gl: "1000-210-5100-0000" },
-      { title: "Board of Health Clerk", gl: "1000-241-5100-0000" }
+      { title: "Executive Assistant (Select Board)", gl: "1000-122-5100-0000", rate: 23.38, proportion: 26 },
+      { title: "Library Assistant", gl: "1000-610-5100-0000", rate: 17.57, proportion: 10 }
     ],
     "LEEANN E MOSES": [
-      { title: "Assessor Administrative", gl: "1000-141-5100-0000" },
-      { title: "Land Use Administrative", gl: "1000-241-5100-0000" }
+      { title: "Land Use Administrative", gl: "1000-241-5100-0000", proportion: 37 },
+      { title: "Assessor Administrative", gl: "1000-141-5100-0000", proportion: 31 }
     ]
+  };
+
+  // Auto-allocation targets for Town Hall Hours button
+  const AUTO_SPLITS = {
+    "PATRICIA LOWE": {
+      mode: "weekly",
+      targets: [
+        { gl: "1000-610-5100-0000", hours: 8.00, label: "Library" },
+        { gl: "1000-122-5100-0000", hours: 26.00, label: "Select Board" }
+      ]
+    },
+    "LEEANN E MOSES": {
+      mode: "biweekly", 
+      targets: [
+        { gl: "1000-241-5100-0000", hours: 37.00, label: "Land Use" },
+        { gl: "1000-141-5100-0000", hours: 31.00, label: "Assessors" }
+      ]
+    }
   };
 
   // ---- Helpers for GL resolution & UI ----
@@ -528,7 +433,7 @@ window.HubbTIME = (function () {
     });
   }
 
-  // Enhanced GL input creation with better autocomplete
+  // Enhanced GL input creation with multi-position support
   function createGLInput(initialGL = '', emp = null) {
     const hasMulti = emp && EMPLOYEE_POSITIONS[emp.name] && EMPLOYEE_POSITIONS[emp.name].length;
     
@@ -557,20 +462,24 @@ window.HubbTIME = (function () {
     
     glDiv.appendChild(glInput);
     
+    // Add multi-position dropdown for Patricia Lowe & LeeAnn Moses
     if (hasMulti) {
       const glChooser = document.createElement('select');
       glChooser.className = 'gl-chooser input';
-      glChooser.style.marginTop = 'var(--space-xs)';
+      glChooser.style.marginTop = '4px';
+      glChooser.style.fontSize = '12px';
       
       const defaultOption = document.createElement('option');
       defaultOption.value = '';
-      defaultOption.textContent = 'Quick select role...';
+      defaultOption.textContent = '↓ Quick select role';
       glChooser.appendChild(defaultOption);
       
       EMPLOYEE_POSITIONS[emp.name].forEach(position => {
         const option = document.createElement('option');
         option.value = position.gl;
-        option.textContent = position.title;
+        const rateText = position.rate ? ` @ $${position.rate}/hr` : '';
+        const proportionText = position.proportion ? ` (${position.proportion} parts)` : '';
+        option.textContent = `${position.title}${rateText}${proportionText}`;
         glChooser.appendChild(option);
       });
       
@@ -648,15 +557,10 @@ window.HubbTIME = (function () {
     const form= $('#timesheetForm');    if (form)form.addEventListener('submit', handleSubmit);
 
     // Supplemental action buttons
-    const split = $('#splitShiftBtn');  
-    if (split) split.addEventListener('click', () => {
-      addTimeRow();
-      setMsg('New row added for split shift.', 'success', true);
-    });
+    const split = $('#splitShiftBtn');  if (split) split.addEventListener('click', addSplitShift);
     const ot    = $('#overtimeBtn');    if (ot)    ot.addEventListener('click', addOvertimeDay);
     const sick  = $('#sickBtn');        if (sick)  sick.addEventListener('click', addSickDay);
     const vac   = $('#vacationBtn');    if (vac)   vac.addEventListener('click', addVacationDay);
-    // Optional buttons (if present in your DOM)
     const pers  = $('#personalBtn');    if (pers)  pers.addEventListener('click', () => addQuickDay('Personal', 'Personal Day', '8.00'));
     const hol   = $('#holidayBtn');     if (hol)   hol.addEventListener('click', () => addQuickDay('Holiday', 'Holiday', '8.00'));
 
@@ -696,6 +600,13 @@ window.HubbTIME = (function () {
     rebuildGLDatalistFor(emp);
     reseedBlankGLs();
     calculateTotals();
+    
+    // Show message about multi-position functionality
+    if (EMPLOYEE_POSITIONS[emp.name]) {
+      const positions = EMPLOYEE_POSITIONS[emp.name];
+      const positionText = positions.map(p => `${p.title} (${p.proportion} parts)`).join(' & ');
+      setMsg(`${emp.name} has multiple positions: ${positionText}. Quick day buttons will auto-split hours.`, 'info', true);
+    }
   }
 
   function clearEmployee() {
@@ -755,7 +666,7 @@ window.HubbTIME = (function () {
          </div>
        </td>`;
 
-    // Insert the custom GL cell
+    // Insert the custom GL cell with multi-position support
     const glCell = tr.children[5]; // 6th cell (0-indexed)
     const glInput = createGLInput(glCode || getDefaultGL(currentEmployee), currentEmployee);
     glCell.appendChild(glInput);
@@ -858,7 +769,7 @@ window.HubbTIME = (function () {
     calculateTotals();
   }
 
-  // ---- Supplemental Actions (Integrated) ----
+  // ---- Enhanced Supplemental Actions ----
   function addSplitShift() {
     const tbody = document.getElementById('timeBody');
     if (!tbody || tbody.children.length === 0) {
@@ -868,25 +779,54 @@ window.HubbTIME = (function () {
 
     const lastRow = tbody.children[tbody.children.length - 1];
     const dateInput = lastRow.querySelector('.date-cell');
+    const startInput = lastRow.querySelector('.time-start');
+    const endInput = lastRow.querySelector('.time-end');
     const glInput = lastRow.querySelector('.gl-input');
     const typeSelect = lastRow.querySelector('.time-type');
+    const descInput = lastRow.children[6]?.querySelector('input');
     
-    if (!dateInput) {
-      setMsg('Could not find date in the last row.', 'error', true);
+    if (!dateInput || !startInput || !endInput) {
+      setMsg('Could not find required fields in the last row.', 'error', true);
       return;
     }
 
     const date = dateInput.value;
+    const start = startInput.value;
+    const end = endInput.value;
     const gl = glInput ? glInput.value : getDefaultGL(currentEmployee);
     const type = typeSelect ? typeSelect.value : 'Regular';
+    const desc = descInput ? descInput.value : '';
     
-    if (!date) {
-      setMsg('Enter a date in the last row before splitting shifts.', 'error', true);
+    if (!date || !start || !end) {
+      setMsg('Please complete the date, start time, and end time in the last row before splitting shifts.', 'error', true);
       return;
     }
 
-    addTimeRowWith(date, '', '', '', type, gl, '');
-    setMsg('New row added for clocking back in.', 'success', true);
+    if (type !== 'Regular') {
+      setMsg('Split Shift only works with Regular time entries.', 'error', true);
+      return;
+    }
+
+    const s = hhmmToMin(start);
+    const e = hhmmToMin(end);
+    
+    if (s == null || e == null || e <= s) {
+      setMsg('Invalid time range. End time must be after start time.', 'error', true);
+      return;
+    }
+
+    const mid = Math.floor((s + e) / 2);
+    const midTime = minToHHMM(mid);
+
+    // Remove the last row
+    lastRow.remove();
+
+    // Add two new split rows
+    addTimeRowWith(date, start, midTime, '', 'Regular', gl, `${desc} (Split 1/2)`.trim());
+    addTimeRowWith(date, midTime, end, '', 'Regular', gl, `${desc} (Split 2/2)`.trim());
+
+    calculateTotals();
+    setMsg(`Shift split successfully: ${start}-${midTime} and ${midTime}-${end}`, 'success', true);
   }
 
   function addQuickDay(kind, label, defaultHours = '8.00') {
@@ -895,15 +835,127 @@ window.HubbTIME = (function () {
       return;
     }
     const today = new Date().toISOString().slice(0, 10);
-    const gl = getDefaultGL(currentEmployee);
-    addTimeRowWith(today, '', '', defaultHours, kind, gl, label);
-    calculateTotals();
-    setMsg(`${label} added successfully.`, 'success', true);
+    
+    // Auto-split hours for multi-position employees based on their weekly proportions
+    if (EMPLOYEE_POSITIONS[currentEmployee.name]) {
+      const positions = EMPLOYEE_POSITIONS[currentEmployee.name];
+      const totalParts = positions.reduce((sum, pos) => sum + pos.proportion, 0);
+      const totalHours = parseFloat(defaultHours);
+      
+      positions.forEach((position) => {
+        const proportionalHours = (totalHours * position.proportion / totalParts).toFixed(2);
+        const positionLabel = `${label} (${position.title})`;
+        addTimeRowWith(today, '', '', proportionalHours, kind, position.gl, positionLabel);
+      });
+      
+      calculateTotals();
+      setMsg(`${label} split: ${positions.map(p => `${(parseFloat(defaultHours) * p.proportion / totalParts).toFixed(2)}h ${p.title}`).join(' + ')}`, 'success', true);
+    } else {
+      // Regular single-position employee
+      const gl = getDefaultGL(currentEmployee);
+      addTimeRowWith(today, '', '', defaultHours, kind, gl, label);
+      calculateTotals();
+      setMsg(`${label} added successfully.`, 'success', true);
+    }
   }
 
   function addOvertimeDay() { addQuickDay('Regular', 'Overtime Day', '10.00'); }
   function addSickDay()     { addQuickDay('Sick', 'Sick Day', '8.00'); }
   function addVacationDay() { addQuickDay('Vacation', 'Vacation Day', '8.00'); }
+
+  // Allocate hours across GL targets, splitting days as needed
+  function allocateHoursToTargets(rows, targets) {
+    if (!rows.length || !targets.length) return;
+    
+    let currentTargetIndex = 0;
+    let remainingHours = targets[currentTargetIndex].hours;
+    const tbody = document.getElementById('timeBody');
+    
+    // Process rows in order, potentially splitting days that cross target boundaries
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const hoursInput = row.querySelector('.time-hours');
+      const rowHours = parseFloat(hoursInput?.value || 0);
+      
+      if (rowHours <= 0) continue;
+      
+      if (currentTargetIndex >= targets.length) {
+        // All targets fulfilled, keep original GL for remaining rows
+        continue;
+      }
+      
+      const currentTarget = targets[currentTargetIndex];
+      
+      if (rowHours <= remainingHours) {
+        // Row fits entirely in current target
+        const glInput = row.querySelector('.gl-input');
+        if (glInput) glInput.value = currentTarget.gl;
+        remainingHours -= rowHours;
+        
+        if (remainingHours <= 0.01) { // Close to zero, move to next target
+          currentTargetIndex++;
+          if (currentTargetIndex < targets.length) {
+            remainingHours = targets[currentTargetIndex].hours;
+          }
+        }
+      } else {
+        // Row exceeds remaining hours, need to split this day
+        const date = row.querySelector('.date-cell')?.value || '';
+        const type = row.querySelector('.time-type')?.value || 'Regular';
+        const desc = row.children[6]?.querySelector('input')?.value || '';
+        
+        // Modify current row: exact remaining hours for current target
+        const glInput = row.querySelector('.gl-input');
+        if (glInput) glInput.value = currentTarget.gl;
+        hoursInput.value = remainingHours.toFixed(2);
+        
+        // Clear start/end times for precise hour control
+        const startInput = row.querySelector('.time-start');
+        const endInput = row.querySelector('.time-end');
+        if (startInput) startInput.value = '';
+        if (endInput) endInput.value = '';
+        
+        // Calculate leftover hours for next target
+        const leftoverHours = rowHours - remainingHours;
+        
+        // Move to next target
+        currentTargetIndex++;
+        
+        if (currentTargetIndex < targets.length) {
+          const nextTarget = targets[currentTargetIndex];
+          
+          // Create new row for leftover hours
+          const newRow = addTimeRowWith(date, '', '', leftoverHours.toFixed(2), type, nextTarget.gl, desc);
+          
+          // Insert after current row
+          if (row.nextSibling) {
+            tbody.insertBefore(newRow, row.nextSibling);
+          } else {
+            tbody.appendChild(newRow);
+          }
+          
+          // Update remaining hours for current target
+          remainingHours = targets[currentTargetIndex].hours - leftoverHours;
+          if (remainingHours <= 0.01) {
+            currentTargetIndex++;
+            if (currentTargetIndex < targets.length) {
+              remainingHours = targets[currentTargetIndex].hours;
+            }
+          }
+        } else {
+          // No more targets, use default GL for leftover
+          const defaultGL = getDefaultGL(currentEmployee);
+          const newRow = addTimeRowWith(date, '', '', leftoverHours.toFixed(2), type, defaultGL, desc);
+          
+          if (row.nextSibling) {
+            tbody.insertBefore(newRow, row.nextSibling);
+          } else {
+            tbody.appendChild(newRow);
+          }
+        }
+      }
+    }
+  }
 
   // Town Hall default hours per warrant (bi-weekly schedule)
   function addTownHallHours() {
@@ -932,6 +984,38 @@ window.HubbTIME = (function () {
     }
     calculateTotals();
     setMsg(`Town Hall hours template applied for ${currentWarrant.start} to ${currentWarrant.end} (M/W/Th 8-4, Tu 8-6).`, "success", true);
+
+    // Auto-allocation for specific employees
+    if (currentEmployee && AUTO_SPLITS[currentEmployee.name]) {
+      const splitConfig = AUTO_SPLITS[currentEmployee.name];
+      const allRows = Array.from(document.querySelectorAll('#timeBody tr'));
+      const regularRows = allRows.filter(row => {
+        const type = row.querySelector('.time-type')?.value || 'Regular';
+        return type === 'Regular';
+      });
+      
+      if (splitConfig.mode === "weekly") {
+        // Patricia: Apply targets separately to each week
+        const week1Rows = regularRows.filter(row => {
+          const date = row.querySelector('.date-cell')?.value || '';
+          return getWeekIndex(date) === 1;
+        });
+        const week2Rows = regularRows.filter(row => {
+          const date = row.querySelector('.date-cell')?.value || '';
+          return getWeekIndex(date) === 2;
+        });
+        
+        allocateHoursToTargets(week1Rows, splitConfig.targets);
+        allocateHoursToTargets(week2Rows, splitConfig.targets);
+      } else if (splitConfig.mode === "biweekly") {
+        // LeeAnn: Apply targets across entire pay period
+        allocateHoursToTargets(regularRows, splitConfig.targets);
+      }
+      
+      calculateTotals();
+      const targetSummary = splitConfig.targets.map(t => `${t.hours}h ${t.label}`).join(' + ');
+      setMsg(`Town Hall hours allocated for ${currentEmployee.name}: ${targetSummary} ${splitConfig.mode === 'weekly' ? 'per week' : 'total'}.`, "success", true);
+    }
   }
 
   // ---- GL Review & Cost Allocation ----
@@ -993,6 +1077,7 @@ window.HubbTIME = (function () {
       if (currentEmployee && currentEmployee.rate) {
         if (currentEmployee.payType === 'hourly') {
           let rate = currentEmployee.rate;
+          // Check for position-specific rates (Patricia Lowe has different rates for different roles)
           if (currentEmployee.name && EMPLOYEE_POSITIONS[currentEmployee.name]) {
             const position = EMPLOYEE_POSITIONS[currentEmployee.name].find(pos => pos.gl === gl && pos.rate);
             if (position) rate = position.rate;
@@ -1074,13 +1159,14 @@ window.HubbTIME = (function () {
     setTxt('sumVacation', vac);
     setTxt('sumHoliday', hol);
 
-    // Pay calculation
+    // Pay calculation with multi-position rate support
     let gross = 0;
     if (currentEmployee && currentEmployee.rate) {
       if (currentEmployee.payType === 'hourly') {
         const hasPositionRates = currentEmployee.name && EMPLOYEE_POSITIONS[currentEmployee.name] && 
                                 EMPLOYEE_POSITIONS[currentEmployee.name].some(pos => pos.rate);
         if (hasPositionRates) {
+          // Calculate pay per GL code with position-specific rates (Patricia Lowe)
           let totalPay = 0;
           rows.forEach(row => {
             const hours = parseFloat(row.querySelector('.time-hours')?.value || 0) || 0;
@@ -1198,6 +1284,14 @@ window.HubbTIME = (function () {
   api.addSickDay = addSickDay;
   api.addVacationDay = addVacationDay;
   api.updateGLReview = updateGLReview;
+  api.removeEntry = (entryId) => { 
+    // For compatibility with supplemental scripts - remove by row if needed
+    const rows = Array.from(document.querySelectorAll('#timeBody tr'));
+    if (entryId && rows[entryId]) {
+      rows[entryId].remove();
+      calculateTotals();
+    }
+  };
 
   return api;
 })();
