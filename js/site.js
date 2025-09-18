@@ -47,35 +47,35 @@ search.addEventListener(‘input’, e => filter(e.target.value));
 }
 
 // Theme toggle (dark default, persisted)
-const themeToggle = document.getElementById('themeToggle');
+const themeToggle = document.getElementById(‘themeToggle’);
 if (themeToggle) {
-  const KEY = 'hubbfiscal-theme';
-  const root = document.documentElement;
-  const apply = mode => {
-    root.dataset.theme = mode;
-    themeToggle.setAttribute('aria-pressed', String(mode === 'light'));
-    themeToggle.textContent = mode === 'light' ? 'Dark' : 'Light';
-    if (mode === 'light') {
-      root.style.setProperty('--bg', '#f5faf7');
-      root.style.setProperty('--panel', '#ffffff');
-      root.style.setProperty('--card', '#ffffff');
-      root.style.setProperty('--ink', '#14271e');
-      root.style.setProperty('--muted', '#476457');
-    } else {
-      root.style.removeProperty('--bg');
-      root.style.removeProperty('--panel');
-      root.style.removeProperty('--card');
-      root.style.removeProperty('--ink');
-      root.style.removeProperty('--muted');
-    }
-    localStorage.setItem(KEY, mode);
-  };
-  const saved = localStorage.getItem(KEY);
-  apply(saved === 'light' ? 'light' : 'dark');
-  themeToggle.addEventListener('click', () => {
-    const next = (root.dataset.theme === 'light') ? 'dark' : 'light';
-    apply(next);
-  });
+const KEY = ‘hubbfiscal-theme’;
+const root = document.documentElement;
+const apply = mode => {
+root.dataset.theme = mode;
+themeToggle.setAttribute(‘aria-pressed’, String(mode === ‘light’));
+themeToggle.textContent = mode === ‘light’ ? ‘Dark’ : ‘Light’;
+if (mode === ‘light’) {
+root.style.setProperty(’–bg’, ‘#f5faf7’);
+root.style.setProperty(’–panel’, ‘#ffffff’);
+root.style.setProperty(’–card’, ‘#ffffff’);
+root.style.setProperty(’–ink’, ‘#14271e’);
+root.style.setProperty(’–muted’, ‘#476457’);
+} else {
+root.style.removeProperty(’–bg’);
+root.style.removeProperty(’–panel’);
+root.style.removeProperty(’–card’);
+root.style.removeProperty(’–ink’);
+root.style.removeProperty(’–muted’);
+}
+localStorage.setItem(KEY, mode);
+};
+const saved = localStorage.getItem(KEY);
+apply(saved === ‘light’ ? ‘light’ : ‘dark’);
+themeToggle.addEventListener(‘click’, () => {
+const next = (root.dataset.theme === ‘light’) ? ‘dark’ : ‘light’;
+apply(next);
+});
 }
 })();
 
