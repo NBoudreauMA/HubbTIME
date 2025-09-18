@@ -1291,7 +1291,74 @@ window.HubbTIME = (function () {
       rows[entryId].remove();
       calculateTotals();
     }
-  };
+  };// === HubbTIME submit → Flow → redirect to prefilled form ===
+(function () {
+  const form = document.getElementById('timesheetForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // get current selections from your existing UI
+    const name = document.getElementById('employeeSearch')?.value?.trim();
+    const warrantSel = document.getElementById('warrant');
+    const warrantNum = warrantSel && warrantSel.value ? Number(warrantSel.value) : null;
+
+    // read the dynamic rows from the time table
+    const rows = Array.from(document.querySelectorAll('#timeBody tr'));
+    const entries = rows.map(tr => {
+      const cells = tr.querySelectorAll('td');
+      const get = (i) => cells[i]?.querySelector('input,select')?.value?.trim() || '';
+      const date = get(0);
+      const start = get(1);
+      const end   = get(2);
+      const hours = parseFloat(get(3) || '0') || 0;
+      const type  = get(4);
+      const gl    = get(5);
+      const desc  = get(6);
+      return { date, startTime: start, endTime: end, hours, timeType: type, glCode: gl, description: desc };
+    }).filter(x => x.date && x.hours > 0);
+
+    // derive totals from your existing totals panel
+    const totalHours = parseFloat((document.getElementById('totalHours')?.textContent || '0').replace(/[,]/g,'')) || 0;
+
+    // build the payload shape your flow expects
+    const payload = {
+      employee: {
+        name: name || '',
+        department: document.getElementById('department')?.textContent || '',
+        payType: document.getElementById('payType')?.textContent || ''
+      },
+      warrant: { number: warrantNum },
+      totals: { totalHours },
+      entries
+    };
+
+    // UX: show “working…”
+    const msg = document.getElementById('systemMsg');
+    if (msg) { msg.className = 'alert info'; msg.textContent = 'Staging your timesheet…'; msg.style.display = 'block'; }
+
+    try {
+      const res = await fetch(FLOW_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data && data.prefillUrl) {
+        // happy path: go straight to the prefilled form (routing continues in Vision Studio)
+        window.location.href = data.prefillUrl;
+      } else {
+        throw new Error('No prefillUrl returned from flow.');
+      }
+    } catch (err) {
+      if (msg) { msg.className = 'alert danger'; msg.textContent = 'Could not stage timesheet. Please try again or contact Finance.'; }
+      console.error(err);
+    }
+  });
+})();
+
 
   return api;
 })();
